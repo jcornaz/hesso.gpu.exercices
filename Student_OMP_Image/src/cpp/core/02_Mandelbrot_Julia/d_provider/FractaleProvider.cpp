@@ -1,56 +1,18 @@
 #include "FractaleProvider.h"
 #include "FractaleMOO.h"
 #include "Fractale.h"
-#include "DomaineMath_CPU.h"
-#include "../c_math/Mandelbrot.h"
+#include "DomaineMath.h"
+#include "Mandelbrot.h"
+#include "ImageFonctionel.h"
 
-/*----------------------------------------------------------------------*\
- |*			Declaration 					*|
- \*---------------------------------------------------------------------*/
+ImageFonctionel* FractaleProvider::createGL() {
+  AnimableFonctionel_I* ptrAnimable = FractaleProvider::createMOO();
+  return new ImageFonctionel(ptrAnimable);
+}
 
-/*--------------------------------------*\
- |*		Imported	 	*|
- \*-------------------------------------*/
+AnimableFonctionel_I* FractaleProvider::createMOO(void) {
+  DomaineMath* domain = new DomaineMath(-2.1, -1.3, 0.8, 1.3);
+  Mandelbrot* algo = new Mandelbrot();
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
-
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
-
-/*----------------------------------------------------------------------*\
- |*			Implementation 					*|
- \*---------------------------------------------------------------------*/
-
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
-
-/*-----------------*\
- |*	static	   *|
- \*----------------*/
-
-Image* FractaleProvider::createGL()
-    {
-    Animable_I* ptrAnimable = FractaleProvider::createMOO();
-
-    return new Image(ptrAnimable);
-    }
-
-Animable_I* FractaleProvider::createMOO(void)
-    {
-    DomaineMath* domain = new DomaineMath(-2.1, -1.3, 0.8, 1.3);
-    Mandelbrot* algo = new Mandelbrot();
-
-    return new FractaleMOO(800, 600, *domain, *algo, 30, 100);
-    }
-
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
-
-/*----------------------------------------------------------------------*\
- |*			End	 					*|
- \*---------------------------------------------------------------------*/
+  return new FractaleMOO(800, 600, domain, algo, 30, 100);
+}

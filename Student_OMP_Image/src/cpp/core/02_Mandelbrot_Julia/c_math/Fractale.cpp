@@ -5,21 +5,17 @@ Fractale::~Fractale() {
     // Nothing
 }
 
-void Fractale::colorXY(uchar4* ptrColor, float x, float y, int n)
-    {
-    int nmax = this->checkSuit(x, y, n);
+void Fractale::colorXY(uchar4* ptrColor, float x, float y, int n) {
+  int nmax = this->checkSuit(x, y, n);
 
-    float hue;
+  float hue;
 
-    if (nmax > n)
-	{
-	hue = 1.0;
-	}
-    else
-	{
-	hue = ((float) nmax) / ((float) n);
-	}
+  if (nmax > n) {
+    hue = 0.0;
+  } else {
+    hue = ((float) nmax) / ((float) n);
+  }
 
-    ColorTools::HSB_TO_RVB(hue, ptrColor);
-    ptrColor->w = 255;
-    }
+  ColorTools::HSB_TO_RVB(hue, ptrColor);
+  ptrColor->w = 255;
+}

@@ -1,8 +1,8 @@
 #ifndef FRACTALE_PROVIDER_H_
 #define FRACTALE_PROVIDER_H_
 
-#include "Image.h"
-#include "Animable_I.h"
+#include "ImageFonctionel.h"
+#include "AnimableFonctionel_I.h"
 
 /*----------------------------------------------------------------------*\
  |*			Declaration 					*|
@@ -16,8 +16,8 @@ class FractaleProvider
     {
     public:
 
-	static Image* createGL(void);
-	static Animable_I* createMOO(void);
+	static ImageFonctionel* createGL(void);
+	static AnimableFonctionel_I* createMOO(void);
 
     };
 
@@ -26,4 +26,3 @@ class FractaleProvider
 /*----------------------------------------------------------------------*\
  |*			End	 					*|
  \*---------------------------------------------------------------------*/
-
