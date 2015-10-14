@@ -45,7 +45,7 @@ __global__ void rippling(uchar4* ptrDevPixels, int w, int h, float t) {
   const int NB_THREADS = Indice2D::nbThread();
   const int TID = Indice2D::tid();
   const int n = w * h;
-  int s = 0;
+  int s = TID;
   while( s < n ) {
     int i, j;
     IndiceTools::toIJ(s, w, &i, &j);

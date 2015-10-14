@@ -147,23 +147,23 @@ void RipplingMOO::setParallelPatern(ParallelPatern parallelPatern)
 /**
  * Code entrainement Cuda
  */
-void RipplingMOO::entrelacementOMP(uchar4* ptrTabPixels, int w, int h)
-    {
+void RipplingMOO::entrelacementOMP(uchar4* ptrTabPixels, int w, int h) {
 
-    const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+  const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
 
-#pragma omp parallel
-	{
-	const int TID = OmpTools::getTid();
-	const int n = w * h;
-	for (int s = TID; s < n; s += NB_THREADS)
-	    {
-		int i, j;
-		IndiceTools::toIJ(s, this->w, &i, &j);
-		this->math.colorIJ(&ptrTabPixels[s], i, j, this->t);
-	    }
-	}
+  #pragma omp parallel
+  {
+    const int TID = OmpTools::getTid();
+    const int n = w * h;
+    int s = TID;
+    while ( s < n ) {
+      int i, j;
+      IndiceTools::toIJ(s, this->w, &i, &j);
+      this->math.colorIJ(&ptrTabPixels[s], i, j, this->t);
+      s += NB_THREADS;
     }
+  }
+}
 
 /**
  * Code naturel et direct OMP
