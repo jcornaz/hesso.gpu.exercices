@@ -1,0 +1,10 @@
+Bilat*/
+Tuto_*/
+BUILDER*/
+RELEASE/
+
+*.log
+
+.*
+!.gitignore
+CMakeLists.txt
