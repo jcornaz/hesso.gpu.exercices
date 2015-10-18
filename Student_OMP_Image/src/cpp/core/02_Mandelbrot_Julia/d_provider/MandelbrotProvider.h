@@ -1,10 +1,10 @@
-#ifndef FRACTALE_PROVIDER_H_
-#define FRACTALE_PROVIDER_H_
+#ifndef MANDELBROT_PROVIDER_H_
+#define MANDELBROT_PROVIDER_H_
 
 #include "ImageFonctionel.h"
 #include "AnimableFonctionel_I.h"
 
-class FractaleProvider {
+class MandelbrotProvider {
 
   public:
   	static ImageFonctionel* createGL();

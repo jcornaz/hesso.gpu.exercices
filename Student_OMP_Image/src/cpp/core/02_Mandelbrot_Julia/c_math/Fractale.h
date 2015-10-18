@@ -8,7 +8,7 @@
 
 class Fractale {
   public:
-    
+
   	void colorXY(uchar4* ptrColor, float x, float y, int n) {
       int nmax = this->checkSuit(x, y, n);
 

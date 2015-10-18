@@ -6,7 +6,8 @@
 #include "ViewerZoomable.h"
 #include "Viewer.h"
 
-#include "FractaleProvider.h"
+#include "JuliaProvider.h"
+#include "MandelbrotProvider.h"
 
 using std::cout;
 using std::endl;
@@ -49,7 +50,8 @@ int mainGL(Settings& settings)
     GLUTImageViewers::init(settings.getArgc(), settings.getArgv()); // call once
 
     // Viewer : (int,int,boolean) : (px,py,isAnimation=true)
-    Viewer<FractaleProvider> mandelbrot( 0, 0 );
+    Viewer<MandelbrotProvider> mandelbrot( 0, 0 );
+    Viewer<JuliaProvider> julia( 960, 0 );
     // add other viewer here!
 
     GLUTImageViewers::runALL();  // Bloquant, Tant qu'une fenetre est ouverte
