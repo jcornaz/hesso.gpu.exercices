@@ -129,9 +129,9 @@ void FractaleMOO::entrelacementOMP(uchar4* ptrTabPixels, int w, int h, const Dom
 		int j;
 
 		while (s < WH) {
-			IndiceTools::toIJ(s,w,&i,&j); // s[0,W*H[ --> i[0,H[ j[0,W[
+			IndiceTools::toIJ(s, w, &i, &j); // s[0,W*H[ --> i[0,H[ j[0,W[
 
-			this->workPixel(&ptrTabPixels[s],i, j, domaineMath);
+			this->workPixel(&ptrTabPixels[s], i, j, domaineMath);
 
 			s += NB_THREADS;
 		}
@@ -148,7 +148,7 @@ void FractaleMOO::forAutoOMP(uchar4* ptrTabPixels, int w, int h, const DomaineMa
 	{
 		for (int j = 0; j < w; j++) {
 			//int s = i * W + j;
-			int s=IndiceTools::toS(w,i,j);// i[0,H[ j[0,W[  --> s[0,W*H[
+			int s=IndiceTools::toS(w, i, j);// i[0,H[ j[0,W[  --> s[0,W*H[
 
 			workPixel(&ptrTabPixels[s], i, j, domaineMath);
 		}

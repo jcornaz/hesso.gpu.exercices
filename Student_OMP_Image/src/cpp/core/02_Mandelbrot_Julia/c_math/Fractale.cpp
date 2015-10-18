@@ -1,8 +1,5 @@
-#include <iostream>
+#include <cmath>
 #include "Fractale.h"
-
-using std::cout;
-using std::endl;
 
 Fractale::~Fractale() {
     // Nothing

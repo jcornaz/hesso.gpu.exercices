@@ -3,13 +3,11 @@
 
 #include "Fractale.h"
 
-class Mandelbrot: public Fractale
-    {
-    public:
-	virtual ~Mandelbrot();
+class Mandelbrot: public Fractale {
+  public:
+  	virtual ~Mandelbrot();
 
-	virtual int checkSuit(float z, float y, int n);
-	virtual bool isDivergent(float z);
-    };
+  	virtual int checkSuit(float z, float y, int n);
+};
 
 #endif

@@ -9,20 +9,24 @@ Mandelbrot::~Mandelbrot() {
 int Mandelbrot::checkSuit(float x, float y, int n) {
 
   float z = 0;
-  int s = 0;
+  int k = 0;
 
-  while (s < n) {
-    z = pow(z, 2) + (x + s * y);
+  float a = 0;
+  float b = 0;
+  float aPowed;
+  float bPowed;
 
-    if (this->isDivergent(z))
+  while (k <= n) {
+    aPowed = pow(a, 2);
+    bPowed = pow(b, 2);
+    if (aPowed + bPowed > 4) {
       break;
-
-    s++;
+    } else {
+      b = 2 * a * b + y;
+      a = aPowed - bPowed + x;
+      k++;
+    }
   }
 
-  return s;
-}
-
-bool Mandelbrot::isDivergent(float z) {
-  return std::abs(z) > 2.0;
+  return k;
 }
