@@ -1,9 +1,7 @@
 #include "FractaleProvider.h"
 #include "FractaleMOO.h"
-#include "Fractale.h"
-#include "DomaineMath.h"
 #include "Mandelbrot.h"
-#include "ImageFonctionel.h"
+#include "DomaineMath.h"
 
 ImageFonctionel* FractaleProvider::createGL() {
   AnimableFonctionel_I* ptrAnimable = FractaleProvider::createMOO();
