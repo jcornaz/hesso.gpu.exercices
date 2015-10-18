@@ -1,5 +1,8 @@
+#include <iostream>
 #include "Fractale.h"
-#include "ColorTools.h"
+
+using std::cout;
+using std::endl;
 
 Fractale::~Fractale() {
     // Nothing
@@ -8,14 +11,19 @@ Fractale::~Fractale() {
 void Fractale::colorXY(uchar4* ptrColor, float x, float y, int n) {
   int nmax = this->checkSuit(x, y, n);
 
-  float hue;
+  float3 hsb;
 
   if (nmax > n) {
-    hue = 0.0;
+    hsb.x = 0;
+    hsb.y = 0;
+    hsb.z = 0;
   } else {
-    hue = ((float) nmax) / ((float) n);
+    hsb.x = ((float) nmax) / ((float) n);
+    hsb.y = 1;
+    hsb.z = 1;
   }
 
-  ColorTools::HSB_TO_RVB(hue, ptrColor);
+  ColorTools::HSB_TO_RVB(hsb, ptrColor);
+
   ptrColor->w = 255;
 }

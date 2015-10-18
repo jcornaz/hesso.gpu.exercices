@@ -3,11 +3,11 @@
 
 #include "cudaType.h"
 #include "AnimableFonctionel_I.h"
-#include "MathTools.h"
 #include "Fractale.h"
 #include "DomaineMath.h"
 
 class FractaleMOO: public AnimableFonctionel_I {
+
   public:
   	FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int nmin, int nmax);
   	virtual ~FractaleMOO(void);
@@ -28,12 +28,12 @@ class FractaleMOO: public AnimableFonctionel_I {
   	void forAutoOMP(uchar4* ptrTabPixels,int w,int h, const DomaineMath& domaineMath); 		// Code naturel et direct OMP, plus performsnt
   	void workPixel(uchar4* ptrColorIJ, int i, int j, const DomaineMath& domaineMath);
 
-
   	// Inputs
   	unsigned int w;
   	unsigned int h;
   	unsigned int nmin;
   	unsigned int nmax;
+    int step;
   	DomaineMath* domain;
   	Fractale* algo;
 

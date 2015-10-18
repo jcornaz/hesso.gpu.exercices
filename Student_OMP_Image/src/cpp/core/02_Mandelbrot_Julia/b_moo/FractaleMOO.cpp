@@ -4,8 +4,6 @@
 #include "FractaleMOO.h"
 #include "OmpTools.h"
 #include "IndiceTools.h"
-#include "../c_math/Fractale.h"
-#include "DomaineMath.h"
 
 using std::cout;
 using std::endl;
@@ -19,6 +17,8 @@ FractaleMOO::FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int 
   this->w = w;
   this->h = h;
   this->n = this->nmin;
+	this->step = 1;
+
   this->parallelPatern = OMP_MIXTE;
 }
 
@@ -70,7 +70,14 @@ DomaineMath* FractaleMOO::getDomaineMathInit() {
  * Override
  */
 void FractaleMOO::animationStep() {
-	this->n++;
+
+	if( this->n == this->nmax ) {
+		this->step = -1;
+	} else if(this->n == this->nmin ) {
+		this->step = 1;
+	}
+
+	this->n += this->step;
 }
 
 /**
@@ -84,14 +91,14 @@ float FractaleMOO::getAnimationPara() {
  * Override
  */
 int FractaleMOO::getW()	{
-	return w;
+	return this->w;
 }
 
 /**
  * Override
  */
 int FractaleMOO::getH() {
-	return h;
+	return this->h;
 }
 
 /**
@@ -120,7 +127,7 @@ void FractaleMOO::entrelacementOMP(uchar4* ptrTabPixels, int w, int h, const Dom
 
 		int i;
 		int j;
-		
+
 		while (s < WH) {
 			IndiceTools::toIJ(s,w,&i,&j); // s[0,W*H[ --> i[0,H[ j[0,W[
 

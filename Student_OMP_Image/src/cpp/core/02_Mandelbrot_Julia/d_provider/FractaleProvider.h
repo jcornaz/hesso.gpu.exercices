@@ -4,25 +4,11 @@
 #include "ImageFonctionel.h"
 #include "AnimableFonctionel_I.h"
 
-/*----------------------------------------------------------------------*\
- |*			Declaration 					*|
- \*---------------------------------------------------------------------*/
+class FractaleProvider {
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
-
-class FractaleProvider
-    {
-    public:
-
-	static ImageFonctionel* createGL(void);
-	static AnimableFonctionel_I* createMOO(void);
-
-    };
+  public:
+  	static ImageFonctionel* createGL();
+  	static AnimableFonctionel_I* createMOO();
+};
 
 #endif
-
-/*----------------------------------------------------------------------*\
- |*			End	 					*|
- \*---------------------------------------------------------------------*/

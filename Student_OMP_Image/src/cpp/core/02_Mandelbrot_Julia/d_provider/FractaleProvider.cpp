@@ -10,9 +10,9 @@ ImageFonctionel* FractaleProvider::createGL() {
   return new ImageFonctionel(ptrAnimable);
 }
 
-AnimableFonctionel_I* FractaleProvider::createMOO(void) {
+AnimableFonctionel_I* FractaleProvider::createMOO() {
   DomaineMath* domain = new DomaineMath(-2.1, -1.3, 0.8, 1.3);
   Mandelbrot* algo = new Mandelbrot();
 
-  return new FractaleMOO(800, 600, domain, algo, 30, 100);
+  return new FractaleMOO(960, 960, domain, algo, 0, 100);
 }
