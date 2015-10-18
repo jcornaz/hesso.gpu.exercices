@@ -7,7 +7,8 @@
 #include "Viewer.h"
 #include "ViewerZoomable.h"
 
-#include "RipplingProvider.h"
+#include "MandelbrotProvider.h"
+#include "JuliaProvider.h"
 
 using std::cout;
 using std::endl;
@@ -46,7 +47,8 @@ int mainGL(Option& option)
     GLUTImageViewers::init(option.getArgc(), option.getArgv());
 
     // Viewer : (int,int,boolean) : (px,py,isAnimation=true)
-    Viewer<RipplingProvider> rippling(10, 10);
+    Viewer<MandelbrotProvider> mandelbrot(0, 0);
+    Viewer<JuliaProvider> julia(960, 0);
     // add here other viewer
 
     GLUTImageViewers::runALL(); // Bloquant, Tant qu'une fenetre est ouverte
@@ -61,4 +63,3 @@ int mainGL(Option& option)
 /*----------------------------------------------------------------------*\
  |*			End	 					*|
  \*---------------------------------------------------------------------*/
-
