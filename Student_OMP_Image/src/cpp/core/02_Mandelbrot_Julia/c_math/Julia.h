@@ -11,8 +11,6 @@ class Julia: public Fractale {
     }
 
   	int checkSuit(float x, float y, int n) {
-
-      float z = 0;
       int k = 0;
 
       float a = x;

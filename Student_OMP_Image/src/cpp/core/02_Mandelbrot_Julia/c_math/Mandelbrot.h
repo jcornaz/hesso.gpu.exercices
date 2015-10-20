@@ -7,8 +7,6 @@ class Mandelbrot: public Fractale {
   public:
 
   	int checkSuit(float x, float y, int n) {
-
-      float z = 0;
       int k = 0;
 
       float a = 0;

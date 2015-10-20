@@ -11,8 +11,6 @@ class Julia: public Fractale {
     }
 
   	__device__ int checkSuit(float x, float y, int n) const {
-
-      float z = 0;
       int k = 0;
 
       float a = x;

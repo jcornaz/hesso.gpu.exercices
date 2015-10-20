@@ -7,8 +7,6 @@ class Mandelbrot: public Fractale {
   public:
 
   	__device__ int checkSuit(float x, float y, int n) const {
-
-      float z = 0;
       int k = 0;
 
       float a = 0;

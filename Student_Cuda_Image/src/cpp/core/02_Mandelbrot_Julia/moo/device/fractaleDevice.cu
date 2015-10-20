@@ -1,12 +1,10 @@
 #include "Indice2D.h"
 #include "IndiceTools.h"
-#include "Fractale.h"
+#include "Mandelbrot.h"
+#include "Julia.h"
 #include "DomaineMath.h"
 
-__global__ void processFractale(uchar4* ptrTabPixels, int w, int h, int n, const Fractale& algo, const DomaineMath& domaineMath);
-
-
-__global__ void processFractale(uchar4* ptrTabPixels, int w, int h, int n, const Fractale& algo, const DomaineMath& domaineMath) {
+__device__ void processFractale(uchar4* ptrTabPixels, int w, int h, int n, const Fractale& algo, const DomaineMath& domaineMath) {
 	const int WH=w*h;
   const int NB_THREADS = Indice2D::nbThread();
   const int TID = Indice2D::tid();
