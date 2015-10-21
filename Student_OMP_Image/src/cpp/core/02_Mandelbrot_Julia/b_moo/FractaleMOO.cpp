@@ -117,6 +117,7 @@ void FractaleMOO::setParallelPatern(ParallelPatern parallelPatern) {
  */
 void FractaleMOO::entrelacementOMP(uchar4* ptrTabPixels, int w, int h, const DomaineMath& domaineMath) {
 	const int WH=w*h;
+
 	const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
 
 	#pragma omp parallel
@@ -132,8 +133,6 @@ void FractaleMOO::entrelacementOMP(uchar4* ptrTabPixels, int w, int h, const Dom
 			IndiceTools::toIJ(s, w, &i, &j); // s[0,W*H[ --> i[0,H[ j[0,W[
 
 			this->workPixel(&ptrTabPixels[s], i, j, domaineMath);
-
-			s += NB_THREADS;
 		}
 	}
 }

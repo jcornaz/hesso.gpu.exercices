@@ -35,33 +35,27 @@ static int start(Settings& settings);
  |*		Public			*|
  \*-------------------------------------*/
 
-int main(int argc, char** argv)
-    {
-    cout<<"main"<<endl;
+int main(int argc, char** argv) {
+  cout<<"main"<<endl;
 
-    bool IS_GL = true;
-    Settings settings(IS_GL,argc,argv);
+  bool IS_GL = true;
+  Settings settings(IS_GL,argc,argv);
 
-    return start(settings);
-    }
+  return start(settings);
+}
 
 /*--------------------------------------*\
  |*		Private			*|
  \*-------------------------------------*/
 
-int start(Settings& settings)
-    {
-    if (settings.isGL())
-	{
-	return mainGL(settings); // Bloquant, Tant qu'une fenetre est ouverte
+int start(Settings& settings) {
+  if (settings.isGL()) {
+	   return mainGL(settings); // Bloquant, Tant qu'une fenetre est ouverte
+	} else {
+    return mainMOO(settings); // FreeGL
 	}
-    else
-	{
-	return mainMOO(settings); // FreeGL
-	}
-    }
+}
 
 /*----------------------------------------------------------------------*\
  |*			End	 					*|
  \*---------------------------------------------------------------------*/
-
