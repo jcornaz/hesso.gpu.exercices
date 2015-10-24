@@ -9,6 +9,8 @@ using std::cout;
 using std::endl;
 using std::string;
 
+const unsigned int FractaleMOO::NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+
 FractaleMOO::FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int nmin, int nmax) {
 	this->algo = algo;
 	this->domain = domain;
@@ -18,7 +20,6 @@ FractaleMOO::FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int 
   this->h = h;
   this->n = this->nmin;
 	this->step = 1;
-
   this->parallelPatern = OMP_MIXTE;
 }
 
@@ -31,6 +32,8 @@ FractaleMOO::~FractaleMOO() {
  * Override
  */
 void FractaleMOO::process( uchar4* ptrTabPixels, int w, int h, const DomaineMath& domaineMath ) {
+
+
 	switch (parallelPatern) {
 
 		case OMP_ENTRELACEMENT: // Plus lent sur CPU
@@ -105,7 +108,7 @@ int FractaleMOO::getH() {
  * Override
  */
 string FractaleMOO::getTitle() {
-	return "Fractale_OMP";
+	return "Fractale_" + this->algo->getName() + "_OMP";
 }
 
 void FractaleMOO::setParallelPatern(ParallelPatern parallelPatern) {
@@ -118,11 +121,8 @@ void FractaleMOO::setParallelPatern(ParallelPatern parallelPatern) {
 void FractaleMOO::entrelacementOMP(uchar4* ptrTabPixels, int w, int h, const DomaineMath& domaineMath) {
 	const int WH=w*h;
 
-	const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
-
 	#pragma omp parallel
 	{
-
 		const int TID = OmpTools::getTid();
 		int s = TID;
 
@@ -133,6 +133,8 @@ void FractaleMOO::entrelacementOMP(uchar4* ptrTabPixels, int w, int h, const Dom
 			IndiceTools::toIJ(s, w, &i, &j); // s[0,W*H[ --> i[0,H[ j[0,W[
 
 			this->workPixel(&ptrTabPixels[s], i, j, domaineMath);
+
+			s += FractaleMOO::NB_THREADS;
 		}
 	}
 }

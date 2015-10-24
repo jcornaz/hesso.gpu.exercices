@@ -4,9 +4,10 @@
 #include "Fractale.h"
 
 class Mandelbrot: public Fractale {
+
   public:
 
-  	int checkSuit(float x, float y, int n) {
+  	int checkSuit(float x, float y, int n) const {
       int k = 0;
 
       float a = 0;
@@ -27,6 +28,10 @@ class Mandelbrot: public Fractale {
       }
 
       return k;
+    }
+
+    string getName() const {
+      return "Mandelbrot";
     }
 };
 

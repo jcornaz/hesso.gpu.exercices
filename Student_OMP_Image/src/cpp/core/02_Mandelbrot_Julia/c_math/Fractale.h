@@ -9,7 +9,7 @@
 class Fractale {
   public:
 
-  	void colorXY(uchar4* ptrColor, float x, float y, int n) {
+  	void colorXY(uchar4* ptrColor, float x, float y, int n) const {
       int nmax = this->checkSuit(x, y, n);
 
       float3 hsb;
@@ -29,7 +29,9 @@ class Fractale {
       ptrColor->w = 255;
     }
 
-  	virtual int checkSuit(float x, float y, int n)=0;
+  	virtual int checkSuit(float x, float y, int n) const = 0;
+
+    virtual string getName() const = 0;
 };
 
 #endif

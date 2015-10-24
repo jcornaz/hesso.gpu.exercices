@@ -10,7 +10,7 @@ class Julia: public Fractale {
       this->c2 = c2;
     }
 
-  	int checkSuit(float x, float y, int n) {
+  	int checkSuit(float x, float y, int n) const {
       int k = 0;
 
       float a = x;
@@ -31,6 +31,10 @@ class Julia: public Fractale {
       }
 
       return k;
+    }
+
+    string getName() const {
+      return "Julia";
     }
 
   private:

@@ -40,6 +40,8 @@ class FractaleMOO: public AnimableFonctionel_I {
   	// Tools
   	unsigned int n;
   	ParallelPatern parallelPatern;
+
+    static const unsigned int NB_THREADS;
 };
 
 #endif
