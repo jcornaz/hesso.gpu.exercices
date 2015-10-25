@@ -24,7 +24,7 @@ int mainMOO(Settings& settings) {
 
   const int NB_ITERATION = 1000;
 
-	// animer(RipplingProvider::createMOO(), NB_ITERATION);
+	animer(RipplingProvider::createMOO(), NB_ITERATION);
   animer(JuliaProvider::createMOO(), NB_ITERATION);
   animer(MandelbrotProvider::createMOO(), NB_ITERATION);
 
