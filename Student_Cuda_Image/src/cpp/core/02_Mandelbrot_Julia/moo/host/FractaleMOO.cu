@@ -5,8 +5,11 @@
 #include "OmpTools.h"
 #include "IndiceTools.h"
 #include "Device.h"
+#include "Mandelbrot.h"
+#include "Julia.h"
 
-extern __global__ void processFractale(uchar4* ptrTabPixels, int w, int h, int n, const Fractale& algo, const DomaineMath& domaineMath);
+__global__ void processMandelbrot(uchar4* ptrTabPixels, int w, int h, int n, const DomaineMath& domaineMath);
+__global__ void processJulia(uchar4* ptrTabPixels, int w, int h, int n, float c1, float c2, const DomaineMath& domaineMath);
 
 FractaleMOO::FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int nmin, int nmax) {
 	this->algo = algo;
@@ -33,7 +36,15 @@ FractaleMOO::~FractaleMOO() {
  * Override
  */
 void FractaleMOO::process(uchar4* ptrDevPixels, int w, int h, const DomaineMath& domaineMath) {
-	processFractale<<<dg,db>>>(ptrDevPixels, w, h, this->n, *this->algo, domaineMath );
+	// getLastError
+	if (Mandelbrot* mandelbrot = dynamic_cast<Mandelbrot*>(this->algo)) {
+		processMandelbrot<<<dg,db>>>(ptrDevPixels, w, h, this->n, domaineMath );
+	} else if (Julia* julia = dynamic_cast<Julia*>(this->algo)) {
+		processJulia<<<dg,db>>>(ptrDevPixels, w, h, this->n, julia->c1, julia->c2, domaineMath );
+	} else {
+		throw "Not supported algorithm";
+	}
+	// getLastError
 }
 
 DomaineMath* FractaleMOO::getDomaineMathInit() {
@@ -79,5 +90,5 @@ int FractaleMOO::getH() {
  * Override
  */
 string FractaleMOO::getTitle() {
-	return "Fractale_OMP";
+	return "Fractale_Cuda";
 }

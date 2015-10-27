@@ -19,8 +19,8 @@ class Julia: public Fractale {
       float bPowed;
 
       while (k <= n) {
-        aPowed = pow(a, 2);
-        bPowed = pow(b, 2);
+        aPowed = a * a;
+        bPowed = b * b;
         if (aPowed + bPowed > 4) {
           break;
         } else {
@@ -33,7 +33,6 @@ class Julia: public Fractale {
       return k;
     }
 
-  private:
     float c1;
     float c2;
 };

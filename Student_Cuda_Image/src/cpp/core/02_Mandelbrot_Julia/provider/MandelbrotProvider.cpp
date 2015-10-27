@@ -12,5 +12,5 @@ AnimableFonctionel_I* MandelbrotProvider::createMOO() {
   DomaineMath* domain = new DomaineMath(-2.1, -1.3, 0.8, 1.3);
   Mandelbrot* algo = new Mandelbrot();
 
-  return new FractaleMOO(960, 960, domain, algo, 30, 100);
+  return new FractaleMOO(32, 32, domain, algo, 30, 50);
 }

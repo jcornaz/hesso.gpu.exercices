@@ -8,78 +8,43 @@
 #include "AnimateurFonctionel.h"
 
 #include "RipplingProvider.h"
+#include "JuliaProvider.h"
+#include "MandelbrotProvider.h"
 
 using std::cout;
 using std::endl;
 using std::string;
 
-/*----------------------------------------------------------------------*\
- |*			Declaration 					*|
- \*---------------------------------------------------------------------*/
-
-/*--------------------------------------*\
- |*		Imported	 	*|
- \*-------------------------------------*/
-
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
-
 int mainFreeGL(Option& option);
-
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
 
 static void animer(Animable_I* ptrAnimable, int nbIteration);
 static void animer(AnimableFonctionel_I* ptrAnimable, int nbIteration);
 
-/*----------------------------------------------------------------------*\
- |*			Implementation 					*|
- \*---------------------------------------------------------------------*/
+int mainFreeGL(Option& option) {
+  cout << "\n[FreeGL] mode" << endl;
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
+  const int NB_ITERATION = 1000;
 
-int mainFreeGL(Option& option)
-    {
-    cout << "\n[FreeGL] mode" << endl;
+	animer(RipplingProvider::createMOO(), NB_ITERATION);
+  animer(MandelbrotProvider::createMOO(), NB_ITERATION);
+  animer(JuliaProvider::createMOO(), NB_ITERATION);
 
-    const int NB_ITERATION = 1000;
 
-    // Rippling
-	{
-	Animable_I* ptrRippling = RipplingProvider::createMOO();
-	animer(ptrRippling, NB_ITERATION);
-	}
+  cout << "\n[FreeGL] end" << endl;
 
-    cout << "\n[FreeGL] end" << endl;
+  return EXIT_SUCCESS;
+}
 
-    return EXIT_SUCCESS;
-    }
+void animer(Animable_I* ptrAnimable, int nbIteration) {
+  Animateur animateur(ptrAnimable, nbIteration);
+  animateur.run();
 
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
+  delete ptrAnimable;
+}
 
-void animer(Animable_I* ptrAnimable, int nbIteration)
-    {
-    Animateur animateur(ptrAnimable, nbIteration);
-    animateur.run();
+void animer(AnimableFonctionel_I* ptrAnimable, int nbIteration) {
+  AnimateurFonctionel animateur(ptrAnimable, nbIteration);
+  animateur.run();
 
-    delete ptrAnimable;
-    }
-
-void animer(AnimableFonctionel_I* ptrAnimable, int nbIteration)
-    {
-    AnimateurFonctionel animateur(ptrAnimable, nbIteration);
-    animateur.run();
-
-    delete ptrAnimable;
-    }
-
-/*----------------------------------------------------------------------*\
- |*			End	 					*|
- \*---------------------------------------------------------------------*/
-
+  delete ptrAnimable;
+}

@@ -4,6 +4,7 @@
 #include "Fractale.h"
 
 class Mandelbrot: public Fractale {
+
   public:
 
   	__device__ int checkSuit(float x, float y, int n) const {
