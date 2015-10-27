@@ -4,7 +4,7 @@
 #include "Fractale.h"
 
 class Julia: public Fractale {
-  
+
   public:
 
     __device__ Julia(float c1, float c2) {
@@ -12,17 +12,18 @@ class Julia: public Fractale {
       this->c2 = c2;
     }
 
-  	__device__ void colorXY(uchar4* ptrColor, float x, float y, int n) const {
-      int nmax = this->checkSuit(x, y, n);
+    __device__ void colorXY(uchar4* ptrColor, double x, double y, int n ) const {
+
+      int k = this->checkSuit(x, y, n);
 
       float3 hsb;
 
-      if (nmax > n) {
+      if (k > n) {
         hsb.x = 0;
         hsb.y = 0;
         hsb.z = 0;
       } else {
-        hsb.x = ((float) nmax) / ((float) n);
+        hsb.x = ((float) k) / ((float) n);
         hsb.y = 1;
         hsb.z = 1;
       }
@@ -32,21 +33,23 @@ class Julia: public Fractale {
       ptrColor->w = 255;
     }
 
-  	__device__ int checkSuit(float x, float y, int n) const {
+  	__device__ int checkSuit(double x, double y, int n) const {
       int k = 0;
 
-      float a = x;
-      float b = y;
-      float aPowed;
-      float bPowed;
+      double a = x;
+      double b = y;
+      double aPowed;
+      double bPowed;
+
+      const double T = 4.0;
 
       while (k <= n) {
         aPowed = a * a;
         bPowed = b * b;
-        if (aPowed + bPowed > 4) {
+        if (aPowed + bPowed > T) {
           break;
         } else {
-          b = 2 * a * b + this->c2;
+          b = 2.0 * a * b + this->c2;
           a = aPowed - bPowed + this->c1;
           k++;
         }

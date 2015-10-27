@@ -7,7 +7,8 @@
 #include "Viewer.h"
 #include "ViewerZoomable.h"
 
-#include "RipplingProvider.h"
+#include "MandelbrotProvider.h"
+#include "JuliaProvider.h"
 
 using std::cout;
 using std::endl;
@@ -16,13 +17,14 @@ using std::string;
 int mainGL(Option& option);
 
 int mainGL(Option& option) {
-  cout << "\n[OpenGL] mode" << endl;
+	cout << "\n[OpenGL] mode" << endl;
 
-  GLUTImageViewers::init(option.getArgc(), option.getArgv());
+	GLUTImageViewers::init(option.getArgc(), option.getArgv());
 
-  Viewer<RipplingProvider> raytracing(0, 0);
+	ViewerZoomable<MandelbrotProvider> mandelbrot(0, 0);
+	ViewerZoomable<JuliaProvider> julia(960, 0);
 
-  GLUTImageViewers::runALL(); // Bloquant, Tant qu'une fenetre est ouverte
+	GLUTImageViewers::runALL(); // Bloquant, Tant qu'une fenetre est ouverte
 
-  return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }

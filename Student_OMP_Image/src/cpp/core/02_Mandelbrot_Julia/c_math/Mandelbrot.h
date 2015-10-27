@@ -16,8 +16,8 @@ class Mandelbrot: public Fractale {
       float bPowed;
 
       while (k <= n) {
-        aPowed = pow(a, 2);
-        bPowed = pow(b, 2);
+        aPowed = a * a;
+        bPowed = b * b;
         if (aPowed + bPowed > 4) {
           break;
         } else {
