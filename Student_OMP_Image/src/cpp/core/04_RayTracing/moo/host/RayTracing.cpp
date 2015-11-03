@@ -1,48 +1,80 @@
+#include <cstdlib>
 #include "RayTracing.h"
 
+extern void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int nbSheres, float t);
 
-RayTracing::RayTracing(int w, int h, float dt) {
-  // TODO
+RayTracing::RayTracing(int w, int h, int padding, float dt, int nbSpheres) {
+  this->title = "Ray Tracing OMP";
+  this->w = w;
+  this->h = h;
+  this->t = 0;
+  this->dt = dt;
+
+  this->nbSpheres = nbSpheres;
+  this->spheres = new Sphere*[nbSpheres];
+
+  const float R_MIN = 20.0;
+  const float R_MAX = w / 10.0;
+  const float X_MIN = (float) padding;
+  const float X_MAX = (float) w - padding;
+  const float Y_MIN = (float) padding;
+  const float Y_MAX = (float) h - padding;
+  const float Z_MIN = 10.0;
+  const float Z_MAX = 2.0 * w;
+  const float H_MIN = 0.0;
+  const float H_MAX = 1.0;
+
+  float3 center;
+  float rayon, hue;
+  for (int i = 0 ; i < this->nbSpheres ; i++ ) {
+
+    center.x = X_MIN + rand() * (X_MAX - X_MIN) / (RAND_MAX + 1.0);
+    center.y = Y_MIN + rand() * (Y_MAX - Y_MIN) / (RAND_MAX + 1.0);
+    center.z = Z_MIN + rand() * (Z_MAX - Z_MIN) / (RAND_MAX + 1.0);
+
+    rayon = R_MIN + rand() * (R_MAX - R_MIN) / (RAND_MAX + 1.0);
+    hue = H_MIN + rand() * (H_MAX - H_MIN) / (RAND_MAX + 1.0);
+
+    this->spheres[i] = new Sphere(center, rayon, hue);
+  }
 }
 
 RayTracing::~RayTracing() {
-  // Nothing to destroy
+  for (int i = 0 ; i < this->nbSpheres ; i++ ) {
+    delete this->spheres[i];
+  }
 }
 
 /**
 * Call periodicly by the api
 */
 void RayTracing::process(uchar4* ptrDevPixels, int w, int h) {
-  // TODO
+  raytracing(ptrDevPixels, this->w, this->h, this->spheres, this->nbSpheres, this->t);
 }
 
 /**
 * Call periodicly by the api
 */
 void RayTracing::animationStep() {
-  // TODO
+  this->t += this->dt;
 }
 
 void RayTracing::setParallelPatern(ParallelPatern parallelPatern) {
-  // TODO
+  // Noghing this class use only the entrelacement version
 }
 
 float RayTracing::getAnimationPara() {
-  // TODO
-  return 0.0;
+  return this->t;
 }
 
 string RayTracing::getTitle() {
-  // TODO
-  return "";
+  return this->title;;
 }
 
 int RayTracing::getW() {
-  // TODO
-  return 0;
+  return this->w;
 }
 
 int RayTracing::getH() {
-  // TODO
-  return 0;
+  return this->h;
 }

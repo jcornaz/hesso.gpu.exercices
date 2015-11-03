@@ -6,7 +6,7 @@ RayTracing* RayTracingProvider::createMOO() {
   int dw = 960;
   int dh = 960;
 
-  return new RayTracing(dw, dh, dt);
+  return new RayTracing(dw, dh, 100, dt, 50);
 }
 
 Image* RayTracingProvider::createGL() {

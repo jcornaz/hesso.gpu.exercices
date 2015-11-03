@@ -3,11 +3,12 @@
 
 #include "Animable_I.h"
 #include "MathTools.h"
+#include "Sphere.h"
 
 class RayTracing: public Animable_I {
 
   public:
-    RayTracing(int w, int h, float dt);
+    RayTracing(int w, int h, int padding, float dt, int nbSpheres);
     virtual ~RayTracing();
 
     /**
@@ -31,6 +32,8 @@ class RayTracing: public Animable_I {
     // Inputs
     int w;
     int h;
+    int nbSpheres;
+    Sphere** spheres;
     float dt;
 
     // Tools
