@@ -1,8 +1,11 @@
 #ifndef SPHERE_H
 #define SPHERE_H
-  #ifndef PI
-    #define PI 3.141592653589793f
-  #endif
+
+#ifndef PI
+  #define PI 3.141592653589793f
+#endif
+
+#include <cmath>
 
 class Sphere {
 
@@ -13,7 +16,7 @@ class Sphere {
       // Inputs
       this->centre = centre;
       this->r = rayon;
-      this->hue = hue;
+      this->hueStart = hue;
 
       // Tools
       this->rCarre = rayon * rayon;
@@ -69,4 +72,6 @@ class Sphere {
     // Tools
     float rCarre;
     float T ; // usefull for animation
-}
+};
+
+#endif
