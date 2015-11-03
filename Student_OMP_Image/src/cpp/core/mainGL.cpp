@@ -6,8 +6,7 @@
 #include "ViewerZoomable.h"
 #include "Viewer.h"
 
-#include "JuliaProvider.h"
-#include "MandelbrotProvider.h"
+#include "RayTracingProvider.h"
 
 using std::cout;
 using std::endl;
@@ -20,8 +19,7 @@ int mainGL(Settings& settings) {
   GLUTImageViewers::init(settings.getArgc(), settings.getArgv()); // call once
 
   // Viewer : (int,int,boolean) : (px,py,isAnimation=true)
-  ViewerZoomable<MandelbrotProvider> mandelbrot( 0, 0 );
-  ViewerZoomable<JuliaProvider> julia( 960, 0 );
+  Viewer<RayTracingProvider> raytracing( 0, 0);
   // add other viewer here!
 
   GLUTImageViewers::runALL();  // Bloquant, Tant qu'une fenetre est ouverte

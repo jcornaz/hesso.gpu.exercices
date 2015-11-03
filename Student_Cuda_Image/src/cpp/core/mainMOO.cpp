@@ -7,9 +7,7 @@
 #include "Animateur.h"
 #include "AnimateurFonctionel.h"
 
-#include "RipplingProvider.h"
-#include "JuliaProvider.h"
-#include "MandelbrotProvider.h"
+#include "RayTracingProvider.h"
 
 using std::cout;
 using std::endl;
@@ -21,14 +19,14 @@ static void animer(Animable_I* ptrAnimable, int nbIteration);
 static void animer(AnimableFonctionel_I* ptrAnimable, int nbIteration);
 
 int mainFreeGL(Option& option) {
+
   cout << "\n[FreeGL] mode" << endl;
 
   const int NB_ITERATION = 1000;
 
-	animer(RipplingProvider::createMOO(), NB_ITERATION);
-  animer(MandelbrotProvider::createMOO(), NB_ITERATION);
-  animer(JuliaProvider::createMOO(), NB_ITERATION);
-
+  Animable_I* ptrAnimable = RayTracingProvider::createMOO();
+  animer(ptrAnimable, NB_ITERATION);
+  delete ptrAnimable;
 
   cout << "\n[FreeGL] end" << endl;
 
@@ -38,13 +36,9 @@ int mainFreeGL(Option& option) {
 void animer(Animable_I* ptrAnimable, int nbIteration) {
   Animateur animateur(ptrAnimable, nbIteration);
   animateur.run();
-
-  delete ptrAnimable;
 }
 
 void animer(AnimableFonctionel_I* ptrAnimable, int nbIteration) {
   AnimateurFonctionel animateur(ptrAnimable, nbIteration);
   animateur.run();
-
-  delete ptrAnimable;
 }
