@@ -8,7 +8,7 @@
 #define MAX_DISTANCE 1e80
 
 void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int nbSheres, float t);
-void computeNearestSphere(Sphere** ptrDevSpheres, int nbSheres, float2 floorPoint, Sphere** nearest, float* brightness);
+void computeNearestSphere(Sphere** ptrDevSpheres, int nbSpheres, float2 floorPoint, int* nearestSphereIndex, float* brightness);
 
 void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int nbSpheres, float t) {
   const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
@@ -19,9 +19,10 @@ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int 
     const int TID = OmpTools::getTid();
 
     int i, j;
-    Sphere* nearestSphere;
+    Sphere* ptrDevNearestSphere;
     float2 floorPoint;
     float3 hsb;
+    int nearestSphereIndex;
     float brightness;
 
     int s = TID;
@@ -31,16 +32,16 @@ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int 
       floorPoint.x = (float) j;
       floorPoint.y = (float) i;
 
-      nearestSphere = NULL;
+      ptrDevNearestSphere = NULL;
 
-      computeNearestSphere(ptrDevSpheres, nbSpheres, floorPoint, &nearestSphere, &brightness);
+      computeNearestSphere(ptrDevSpheres, nbSpheres, floorPoint, &nearestSphereIndex, &brightness);
 
-      if (nearestSphere == NULL) {
+      if (nearestSphereIndex < 0) {
         hsb.x = 0;
         hsb.y = 0;
         hsb.z = 0;
       } else {
-        hsb.x = nearestSphere->hue(t);
+        hsb.x = ptrDevSpheres[nearestSphereIndex]->hue(t);
         hsb.y = 1;
         hsb.z = brightness;
       }
@@ -53,23 +54,23 @@ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int 
   }
 }
 
-void computeNearestSphere(Sphere** ptrDevSpheres, int nbSpheres, float2 floorPoint, Sphere** nearest, float* brightness) {
-
+void computeNearestSphere(Sphere** ptrDevSpheres, int nbSpheres, float2 floorPoint, int* nearestSphereIndex, float* brightness) {
   float hCarre, dz, distance;
   float distanceMin = MAX_DISTANCE;
+  *nearestSphereIndex = -1;
 
-  int s = 0;
-  while (s < nbSpheres) {
-    hCarre = ptrDevSpheres[s]->hCarre(floorPoint);
+  for( int i = 0 ; i < nbSpheres ; i++ ) {
 
-    if (ptrDevSpheres[s]->isEnDessous(hCarre)) {
-      dz = ptrDevSpheres[s]->dz(hCarre);
-      distance = ptrDevSpheres[s]->distance(dz);
+    hCarre = ptrDevSpheres[i]->hCarre(floorPoint);
+
+    if (ptrDevSpheres[i]->isEnDessous(hCarre)) {
+      dz = ptrDevSpheres[i]->dz(hCarre);
+      distance = ptrDevSpheres[i]->distance(dz);
 
       if (distance < distanceMin) {
         distanceMin = distance;
-        *nearest = ptrDevSpheres[s];
-        *brightness = ptrDevSpheres[s]->brightness(dz);
+        *nearestSphereIndex = i;
+        *brightness = ptrDevSpheres[i]->brightness(dz);
       }
     }
   }

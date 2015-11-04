@@ -20,6 +20,7 @@ class Sphere {
 
       // Tools
       this->rCarre = rayon * rayon;
+      this->T = 100.0;
     }
 
     /**
@@ -51,15 +52,11 @@ class Sphere {
       return centre.z - dz;
     }
 
-    float getHueStart() {
-      return hueStart;
-    }
-
     /**
      * usefull for animation
      */
     float hue(float t) {
-      return 0.5 + 0.5 * sin(t + T + 3 * PI / 2);
+      return fmod(this->hueStart + t / this->T, 1.0);
     }
 
   private:
@@ -71,7 +68,7 @@ class Sphere {
 
     // Tools
     float rCarre;
-    float T ; // usefull for animation
+    float T;
 };
 
 #endif
