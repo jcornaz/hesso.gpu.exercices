@@ -11,7 +11,7 @@ class Sphere {
 
   public:
 
-    Sphere(float3 centre, float rayon, float hue) {
+    __device__ Sphere(float3 centre, float rayon, float hue) {
 
       // Inputs
       this->centre = centre;
@@ -26,36 +26,36 @@ class Sphere {
     /**
      * required by example for new Sphere[n]
      */
-    Sphere() {
+    __device__ Sphere() {
       // nothing
     }
 
-    float hCarre(float2 xySol) {
+    __device__ float hCarre(float2 xySol) {
       float a = (centre.x - xySol.x);
       float b = (centre.y - xySol.y);
       return a * a + b * b;
     }
 
-    bool isEnDessous(float hCarre) {
+    __device__ bool isEnDessous(float hCarre) {
       return hCarre < rCarre;
     }
 
-    float dz(float hCarre) {
+    __device__ float dz(float hCarre) {
       return sqrtf(rCarre - hCarre);
     }
 
-    float brightness(float dz) {
+    __device__ float brightness(float dz) {
       return dz / r;
     }
 
-    float distance(float dz) {
+    __device__ float distance(float dz) {
       return centre.z - dz;
     }
 
     /**
      * usefull for animation
      */
-    float hue(float t) {
+    __device__ float hue(float t) {
       return fmod(this->hueStart + t / this->T, 1.0);
     }
 

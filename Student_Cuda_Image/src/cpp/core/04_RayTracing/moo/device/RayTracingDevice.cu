@@ -7,10 +7,10 @@
 
 #define MAX_DISTANCE 1e80
 
-void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int nbSheres, float t);
-void computeNearestSphere(Sphere** ptrDevSpheres, int nbSpheres, float2 floorPoint, int* nearestSphereIndex, float* brightness);
+__global__ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int nbSheres, float t);
+__device__ void computeNearestSphere(Sphere** ptrDevSpheres, int nbSpheres, float2 floorPoint, int* nearestSphereIndex, float* brightness);
 
-void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int nbSpheres, float t) {
+__global__ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int nbSpheres, float t) {
   const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
   const int WH = w * h;
 
@@ -54,7 +54,7 @@ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int 
   }
 }
 
-void computeNearestSphere(Sphere** ptrDevSpheres, int nbSpheres, float2 floorPoint, int* nearestSphereIndex, float* brightness) {
+__device__ void computeNearestSphere(Sphere** ptrDevSpheres, int nbSpheres, float2 floorPoint, int* nearestSphereIndex, float* brightness) {
   float hCarre, dz, distance;
   float distanceMin = MAX_DISTANCE;
   *nearestSphereIndex = -1;
