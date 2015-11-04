@@ -12,7 +12,7 @@ class FractaleMOO: public AnimableFonctionel_I {
   	FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int nmin, int nmax);
   	virtual ~FractaleMOO(void);
 
-  	virtual void process(uchar4* ptrDevPixels,int w, int h,const DomaineMath& domaineMath);
+  	virtual void process(uchar4* ptrDevPixels, int w, int h, const DomaineMath& domaineMath);
   	virtual void animationStep();
 
     virtual DomaineMath* getDomaineMathInit(void);
@@ -21,16 +21,12 @@ class FractaleMOO: public AnimableFonctionel_I {
   	virtual int getH();
   	virtual string getTitle();
 
-  	virtual void setParallelPatern(ParallelPatern parallelPatern);
-
   private:
-  	void entrelacementOMP(uchar4* ptrTabPixels,int w,int h, const DomaineMath& domaineMath); 	// Code entrainement Cuda
-  	void forAutoOMP(uchar4* ptrTabPixels,int w,int h, const DomaineMath& domaineMath); 		// Code naturel et direct OMP, plus performsnt
-  	void workPixel(uchar4* ptrColorIJ, int i, int j, const DomaineMath& domaineMath);
 
   	// Inputs
   	unsigned int w;
   	unsigned int h;
+  	unsigned int n;
   	unsigned int nmin;
   	unsigned int nmax;
     int step;
@@ -38,10 +34,8 @@ class FractaleMOO: public AnimableFonctionel_I {
   	Fractale* algo;
 
   	// Tools
-  	unsigned int n;
-  	ParallelPatern parallelPatern;
-
-    static const unsigned int NB_THREADS;
+  	dim3 dg;
+  	dim3 db;
 };
 
 #endif
