@@ -7,7 +7,7 @@
 #include "Animateur.h"
 #include "AnimateurFonctionel.h"
 
-#include "RayTracingProvider.h"
+#include "RipplingProvider.h"
 
 using std::cout;
 using std::endl;
@@ -24,7 +24,7 @@ int mainFreeGL(Option& option) {
 
   const int NB_ITERATION = 1000;
 
-  Animable_I* ptrAnimable = RayTracingProvider::createMOO();
+  Animable_I* ptrAnimable = RipplingProvider::createMOO();
   animer(ptrAnimable, NB_ITERATION);
   delete ptrAnimable;
 

@@ -10,108 +10,65 @@
 using std::cout;
 using std::endl;
 
-/*----------------------------------------------------------------------*\
- |*			Declaration 					*|
- \*---------------------------------------------------------------------*/
-
-/*--------------------------------------*\
- |*		Imported	 	*|
- \*-------------------------------------*/
-
 extern int mainGL(Option& option);
 extern int mainFreeGL(Option& option);
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
-
 int main(int argc, char** argv);
 
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
 
 static int use(Option& option);
 static int start(Option& option);
 static void initCuda(Option& option);
 
-/*----------------------------------------------------------------------*\
- |*			Implementation 					*|
- \*---------------------------------------------------------------------*/
+int main(int argc, char** argv) {
+  // Server Cuda1: in [0,5]
+  // Server Cuda2: in [0,2]
+  int DEVICE_ID = 0;
+  bool IS_GL = false;
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
+  Option option(IS_GL, DEVICE_ID,argc,argv);
 
-int main(int argc, char** argv)
-    {
-    // Server Cuda1: in [0,5]
-    // Server Cuda2: in [0,2]
-    int DEVICE_ID = 0;
-    bool IS_GL = true;
+  use(option);
+}
 
-    Option option(IS_GL, DEVICE_ID,argc,argv);
+int use(Option& option) {
+  if (Device::isCuda()) {
+      initCuda(option);
+      int isOk = start(option);
 
-    use(option);
+      HANDLE_ERROR(cudaDeviceReset()); //cudaDeviceReset causes the driver to clean up all state. While not mandatory in normal operation, it is good practice.
+
+      return isOk;
+    } else {
+      return EXIT_FAILURE;
     }
+}
 
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
+void initCuda(Option& option) {
+  int deviceId = option.getDeviceId();
 
-int use(Option& option)
-    {
-    if (Device::isCuda())
-	{
-	initCuda(option);
-	int isOk = start(option);
+  // Check deviceId area
+  int nbDevice = Device::getDeviceCount();
+  assert(deviceId >= 0 && deviceId < nbDevice);
 
-	HANDLE_ERROR(cudaDeviceReset()); //cudaDeviceReset causes the driver to clean up all state. While not mandatory in normal operation, it is good practice.
+  // Choose current device  (state of host-thread)
+  HANDLE_ERROR(cudaSetDevice(deviceId));
 
-	return isOk;
-	}
-    else
-	{
-	return EXIT_FAILURE;
-	}
-    }
+  // It can be usefull to preload driver, by example to practice benchmarking! (sometimes slow under linux)
+  Device::loadCudaDriver(deviceId);
+  // Device::loadCudaDriverAll();// Force driver to be load for all GPU
+}
 
-void initCuda(Option& option)
-    {
-    int deviceId = option.getDeviceId();
+int start(Option& option) {
 
-    // Check deviceId area
-    int nbDevice = Device::getDeviceCount();
-    assert(deviceId >= 0 && deviceId < nbDevice);
-
-    // Choose current device  (state of host-thread)
-    HANDLE_ERROR(cudaSetDevice(deviceId));
-
-    // It can be usefull to preload driver, by example to practice benchmarking! (sometimes slow under linux)
-    Device::loadCudaDriver(deviceId);
-    // Device::loadCudaDriverAll();// Force driver to be load for all GPU
-    }
-
-int start(Option& option)
-    {
-    // print
-	{
 	// Device::printAll();
 	Device::printAllSimple();
 	Device::printCurrent();
 	//Device::print(option.getDeviceId());
-	}
 
-    if (option.isGL())
-	{
-	return mainGL(option); // Bloquant, Tant qu'une fenetre est ouverte
-	}
-    else
-	{
-	return mainFreeGL(option);
-	}
-    }
-
-/*----------------------------------------------------------------------*\
- |*			End	 					*|
- \*---------------------------------------------------------------------*/
+if (option.isGL()) {
+    return mainGL(option); // Bloquant, Tant qu'une fenetre est ouverte
+  } else {
+    return mainFreeGL(option);
+  }
+}
