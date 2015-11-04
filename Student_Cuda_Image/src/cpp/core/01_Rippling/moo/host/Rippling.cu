@@ -7,126 +7,71 @@
 using std::cout;
 using std::endl;
 
-/*----------------------------------------------------------------------*\
- |*			Declaration 					*|
- \*---------------------------------------------------------------------*/
-
-/*--------------------------------------*\
- |*		Imported	 	*|
- \*-------------------------------------*/
-
 extern __global__ void rippling(uchar4* ptrDevPixels, int w, int h, float t);
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
+Rippling::Rippling(int w, int h, float dt) {
+  assert(w == h);
 
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
+  // Inputs
+  this->w = w;
+  this->h = h;
+  this->dt = dt;
 
-/*----------------------------------------------------------------------*\
- |*			Implementation 					*|
- \*---------------------------------------------------------------------*/
+  // Tools
+  this->dg = dim3(w / 32, h / 32, 1);
+  this->db = dim3(32, 32, 1);
+  this->t = 0;
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
+  // Outputs
+  this->title = "Rippling_Cuda";
 
-/*-------------------------*\
- |*	Constructeur	    *|
- \*-------------------------*/
+  //print(dg, db);
+  Device::assertDim(dg, db);
+}
 
-Rippling::Rippling(int w, int h, float dt)
-    {
-    assert(w == h);
+Rippling::~Rippling() {
+  // rien
+}
 
-    // Inputs
-    this->w = w;
-    this->h = h;
-    this->dt = dt;
-
-    // Tools
-    this->dg = dim3(8, 8, 1);
-    this->db = dim3(16, 16, 1);
-    this->t = 0;
-
-    // Outputs
-    this->title = "Rippling_Cuda";
-
-    //print(dg, db);
-    Device::assertDim(dg, db);
-    }
-
-Rippling::~Rippling()
-    {
-    // rien
-    }
-
-/*-------------------------*\
- |*	Methode		    *|
- \*-------------------------*/
+/**
+ * Override
+ */
+void Rippling::process(uchar4* ptrDevPixels, int w, int h) {
+  rippling<<<dg,db>>>(ptrDevPixels, w, h, this->t);
+}
 
 
 /**
  * Override
  */
-void Rippling::process(uchar4* ptrDevPixels, int w, int h)
-    {
-    rippling<<<dg,db>>>(ptrDevPixels, w, h, this->t);
-    }
-
+void Rippling::animationStep() {
+  this->t += this->dt;
+}
 
 /**
  * Override
  */
-void Rippling::animationStep()
-    {
-    this->t += this->dt;
-    }
-
-/*--------------*\
- |*	get	 *|
- \*--------------*/
+float Rippling::getAnimationPara(void) {
+  return t;
+}
 
 /**
  * Override
  */
-float Rippling::getAnimationPara(void)
-    {
-    return t;
-    }
+int Rippling::getW(void) {
+  return w;
+}
 
 /**
  * Override
  */
-int Rippling::getW(void)
-    {
-    return w;
-    }
+int Rippling::getH(void) {
+  return  h;
+}
 
 /**
  * Override
  */
-int Rippling::getH(void)
-    {
-    return  h;
-    }
-
-/**
- * Override
- */
-string Rippling::getTitle(void)
-    {
-    return title;
-    }
-
-
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
-
-/*----------------------------------------------------------------------*\
- |*			End	 					*|
- \*---------------------------------------------------------------------*/
-
+string Rippling::getTitle(void) {
+  return title;
+}

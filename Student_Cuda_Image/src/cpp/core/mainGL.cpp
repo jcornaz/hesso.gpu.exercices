@@ -7,7 +7,7 @@
 #include "Viewer.h"
 #include "ViewerZoomable.h"
 
-#include "RayTracingProvider.h"
+#include "RipplingProvider.h"
 
 using std::cout;
 using std::endl;
@@ -20,7 +20,7 @@ int mainGL(Option& option) {
 
   GLUTImageViewers::init(option.getArgc(), option.getArgv());
 
-  Viewer<RayTracingProvider> raytracing(0, 0);
+  Viewer<RipplingProvider> raytracing(0, 0);
 
   GLUTImageViewers::runALL(); // Bloquant, Tant qu'une fenetre est ouverte
 
