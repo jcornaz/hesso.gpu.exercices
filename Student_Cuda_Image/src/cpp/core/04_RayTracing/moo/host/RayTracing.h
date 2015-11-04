@@ -21,23 +21,28 @@ class RayTracing: public Animable_I {
     */
     virtual void animationStep();
 
-    virtual void setParallelPatern(ParallelPatern parallelPatern);
-
     virtual float getAnimationPara();
     virtual string getTitle();
     virtual int getW();
     virtual int getH();
 
   private:
+
+    void createSpheres(int nb);
+    void destroySpheres();
+
     // Inputs
     int w;
     int h;
+    int padding;
     int nbSpheres;
-    Sphere** spheres;
+    Sphere** ptrDevSpheres;
     float dt;
 
     // Tools
     float t;
+  	dim3 dg;
+  	dim3 db;
 
     //Outputs
     string title;

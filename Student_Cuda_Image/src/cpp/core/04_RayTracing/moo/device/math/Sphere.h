@@ -11,7 +11,7 @@ class Sphere {
 
   public:
 
-    __device__ Sphere(float3 centre, float rayon, float hue) {
+    Sphere(float3 centre, float rayon, float hue) {
 
       // Inputs
       this->centre = centre;
@@ -20,14 +20,7 @@ class Sphere {
 
       // Tools
       this->rCarre = rayon * rayon;
-      this->T = 100.0;
-    }
-
-    /**
-     * required by example for new Sphere[n]
-     */
-    __device__ Sphere() {
-      // nothing
+      this->T = asin(2 * hue - 1) - 3 * PI / 2;
     }
 
     __device__ float hCarre(float2 xySol) {
@@ -56,7 +49,7 @@ class Sphere {
      * usefull for animation
      */
     __device__ float hue(float t) {
-      return fmod(this->hueStart + t / this->T, 1.0);
+      return 0.5 + 0.5 * sin(t + 3 * PI / 2 + T);
     }
 
   private:
