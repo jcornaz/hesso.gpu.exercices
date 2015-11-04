@@ -40,6 +40,9 @@ void RayTracing::createSpheres(int nb) {
   const float H_MIN = 0.0;
   const float H_MAX = 1.0;
 
+  float3 center;
+  float rayon, hue;
+
   this->nbSpheres = nb;
   size_t sphereSize = sizeof(Sphere);
   size_t ptrSize = sizeof(Sphere*);
@@ -48,9 +51,7 @@ void RayTracing::createSpheres(int nb) {
   Sphere* ptrDevCurrentSphere;
 
   HANDLE_ERROR(cudaMalloc(&this->ptrDevSpheres, ptrSize * nb));
-
-  float3 center;
-  float rayon, hue;
+  
   for (int i = 0 ; i < this->nbSpheres ; i++ ) {
 
     center.x = X_MIN + rand() * (X_MAX - X_MIN) / (RAND_MAX + 1.0);
@@ -63,7 +64,7 @@ void RayTracing::createSpheres(int nb) {
     ptrCurrentSphere = new Sphere(center, rayon, hue);
     HANDLE_ERROR(cudaMalloc(&ptrDevCurrentSphere, sphereSize));
     HANDLE_ERROR(cudaMemcpy(ptrDevCurrentSphere, ptrCurrentSphere, sphereSize, cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(&this->ptrDevSpheres[i], &ptrDevCurrentSphere, ptrSize, cudaMemcpyDeviceToDevice));
+    HANDLE_ERROR(cudaMemcpy(&this->ptrDevSpheres[i], &ptrDevCurrentSphere, ptrSize, cudaMemcpyHostToDevice));
     delete ptrCurrentSphere;
   }
 }
