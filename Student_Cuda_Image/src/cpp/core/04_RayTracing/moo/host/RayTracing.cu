@@ -7,7 +7,7 @@
 __global__ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int nbSheres, float t);
 
 RayTracing::RayTracing(int w, int h, int padding, float dt, int nbSpheres) {
-  this->title = "Ray Tracing OMP";
+  this->title = "Ray Tracing Cuda";
   this->w = w;
   this->h = h;
   this->t = 0;
@@ -47,11 +47,13 @@ void RayTracing::createSpheres(int nb) {
   size_t sphereSize = sizeof(Sphere);
   size_t ptrSize = sizeof(Sphere*);
 
+  std::cout << "sphere size : " << sphereSize << std::endl;
+
   Sphere* ptrCurrentSphere;
   Sphere* ptrDevCurrentSphere;
 
   HANDLE_ERROR(cudaMalloc(&this->ptrDevSpheres, ptrSize * nb));
-  
+
   for (int i = 0 ; i < this->nbSpheres ; i++ ) {
 
     center.x = X_MIN + rand() * (X_MAX - X_MIN) / (RAND_MAX + 1.0);

@@ -1,12 +1,15 @@
 #include "RayTracingProvider.h"
 
 RayTracing* RayTracingProvider::createMOO() {
-  float dt = 1;
 
   int dw = 960;
   int dh = 960;
 
-  return new RayTracing(dw, dh, 10, dt, 10);
+  float dt = 0.1;
+  int padding = 10;
+  int nbSpheres = 100;
+
+  return new RayTracing(dw, dh, padding, dt, nbSpheres);
 }
 
 Image* RayTracingProvider::createGL() {
