@@ -19,7 +19,7 @@ __global__ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSp
   float2 floorPoint;
   float3 hsb;
   int nearestSphereIndex;
-  float brightness;
+  float dz;
 
   int s = TID;
   while (s < WH) {
@@ -28,7 +28,7 @@ __global__ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSp
     floorPoint.x = (float) j;
     floorPoint.y = (float) i;
 
-    computeNearestSphere(ptrDevSpheres, nbSpheres, floorPoint, &nearestSphereIndex, &brightness);
+    computeNearestSphere(ptrDevSpheres, nbSpheres, floorPoint, &nearestSphereIndex, &dz);
 
     if (nearestSphereIndex < 0) {
       hsb.x = 0;
@@ -37,7 +37,7 @@ __global__ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSp
     } else {
       hsb.x = ptrDevSpheres[nearestSphereIndex]->hue(t);
       hsb.y = 1;
-      hsb.z = brightness;
+      hsb.z = ptrDevSpheres[nearestSphereIndex]->brightness(dz);;
     }
 
     ColorTools::HSB_TO_RVB(hsb, &ptrDevPixels[s]);
@@ -47,8 +47,8 @@ __global__ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSp
   }
 }
 
-__device__ void computeNearestSphere(Sphere** ptrDevSpheres, int nbSpheres, float2 floorPoint, int* nearestSphereIndex, float* brightness) {
-  float hCarre, dz, distance;
+__device__ void computeNearestSphere(Sphere** ptrDevSpheres, int nbSpheres, float2 floorPoint, int* nearestSphereIndex, float* dz) {
+  float hCarre, currentDz, distance;
   float distanceMin = MAX_DISTANCE;
   *nearestSphereIndex = -1;
 
@@ -57,13 +57,13 @@ __device__ void computeNearestSphere(Sphere** ptrDevSpheres, int nbSpheres, floa
     hCarre = ptrDevSpheres[i]->hCarre(floorPoint);
 
     if (ptrDevSpheres[i]->isEnDessous(hCarre)) {
-      dz = ptrDevSpheres[i]->dz(hCarre);
-      distance = ptrDevSpheres[i]->distance(dz);
+      currentDz = ptrDevSpheres[i]->dz(hCarre);
+      distance = ptrDevSpheres[i]->distance(currentDz);
 
       if (distance < distanceMin) {
         distanceMin = distance;
         *nearestSphereIndex = i;
-        *brightness = ptrDevSpheres[i]->brightness(dz);
+        *dz = currentDz;
       }
     }
   }
