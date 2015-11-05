@@ -7,7 +7,9 @@
 using std::cout;
 using std::endl;
 
-extern __global__ void rippling(uchar4* ptrDevPixels, int w, int h, float t);
+extern __global__ void ripplingOneToOne(uchar4* ptrDevPixels, int w, int h, float t);
+extern __global__ void ripplingOneDimension(uchar4* ptrDevPixels, int w, int h, float t);
+extern __global__ void ripplingTwoDimensions(uchar4* ptrDevPixels, int w, int h, float t);
 
 Rippling::Rippling(int w, int h, float dt) {
   assert(w == h);
@@ -18,6 +20,7 @@ Rippling::Rippling(int w, int h, float dt) {
   this->dt = dt;
 
   // Tools
+
   this->dg = dim3(64, 64, 1);
   this->db = dim3(16, 16, 1);
   this->t = 0;
@@ -37,7 +40,9 @@ Rippling::~Rippling() {
  * Override
  */
 void Rippling::process(uchar4* ptrDevPixels, int w, int h) {
-  rippling<<<dg,db>>>(ptrDevPixels, w, h, this->t);
+  ripplingOneToOne<<<dg,db>>>(ptrDevPixels, w, h, this->t);
+  // ripplingOneDimension<<<dg,db>>>(ptrDevPixels, w, h, this->t);
+  // ripplingTwoDimensions<<<dg,db>>>(ptrDevPixels, w, h, this->t);
 }
 
 

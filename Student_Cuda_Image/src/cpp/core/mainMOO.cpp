@@ -8,6 +8,9 @@
 #include "AnimateurFonctionel.h"
 
 #include "RipplingProvider.h"
+#include "MandelbrotProvider.h"
+#include "JuliaProvider.h"
+#include "RayTracingProvider.h"
 
 using std::cout;
 using std::endl;
@@ -15,8 +18,8 @@ using std::string;
 
 int mainFreeGL(Option& option);
 
-static void animer(Animable_I* ptrAnimable, int nbIteration);
-static void animer(AnimableFonctionel_I* ptrAnimable, int nbIteration);
+static void animeAndDelete(Animable_I* ptrAnimable, int nbIteration);
+static void animeAndDelete(AnimableFonctionel_I* ptrAnimable, int nbIteration);
 
 int mainFreeGL(Option& option) {
 
@@ -24,21 +27,26 @@ int mainFreeGL(Option& option) {
 
   const int NB_ITERATION = 1000;
 
-  Animable_I* ptrAnimable = RipplingProvider::createMOO();
-  animer(ptrAnimable, NB_ITERATION);
-  delete ptrAnimable;
+  animeAndDelete(RipplingProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(MandelbrotProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(JuliaProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(RayTracingProvider::createMOO(), NB_ITERATION);
 
   cout << "\n[FreeGL] end" << endl;
 
   return EXIT_SUCCESS;
 }
 
-void animer(Animable_I* ptrAnimable, int nbIteration) {
+void animeAndDelete(Animable_I* ptrAnimable, int nbIteration) {
   Animateur animateur(ptrAnimable, nbIteration);
   animateur.run();
+
+  delete ptrAnimable;
 }
 
-void animer(AnimableFonctionel_I* ptrAnimable, int nbIteration) {
+void animeAndDelete(AnimableFonctionel_I* ptrAnimable, int nbIteration) {
   AnimateurFonctionel animateur(ptrAnimable, nbIteration);
   animateur.run();
+
+  delete ptrAnimable;
 }

@@ -61,10 +61,10 @@ void initCuda(Option& option) {
 
 int start(Option& option) {
 
-	// Device::printAll();
+	Device::printAll();
 	Device::printAllSimple();
 	Device::printCurrent();
-	//Device::print(option.getDeviceId());
+	Device::print(option.getDeviceId());
 
 if (option.isGL()) {
     return mainGL(option); // Bloquant, Tant qu'une fenetre est ouverte

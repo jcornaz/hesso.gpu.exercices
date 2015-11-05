@@ -5,73 +5,42 @@
 #include "Animable_I.h"
 #include "MathTools.h"
 
-/*----------------------------------------------------------------------*\
- |*			Declaration 					*|
- \*---------------------------------------------------------------------*/
+class Rippling: public Animable_I {
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
+  public:
 
-class Rippling: public Animable_I
-    {
-	/*--------------------------------------*\
-	|*		Constructor		*|
-	 \*-------------------------------------*/
+    Rippling(int w, int h, float dt);
+    virtual ~Rippling();
 
-    public:
+    /**
+    * Call periodicly by the api
+    */
+    virtual void process(uchar4* ptrDevPixels, int w, int h);
+    /**
+    * Call periodicly by the api
+    */
+    virtual void animationStep();
 
-	Rippling(int w, int h, float dt);
-	virtual ~Rippling(void);
+    virtual float getAnimationPara();
+    virtual string getTitle();
+    virtual int getW();
+    virtual int getH();
 
-	/*--------------------------------------*\
-	 |*		Methodes		*|
-	 \*-------------------------------------*/
 
-    public:
+  private:
 
-	/*-------------------------*\
-	|*   Override Animable_I   *|
-	 \*------------------------*/
+    // Inputs
+    int w;
+    int h;
+    float dt;
 
-	/**
-	 * Call periodicly by the api
-	 */
-	virtual void process(uchar4* ptrDevPixels, int w, int h);
-	/**
-	 * Call periodicly by the api
-	 */
-	virtual void animationStep();
+    // Tools
+    dim3 dg;
+    dim3 db;
+    float t;
 
-	virtual float getAnimationPara();
-	virtual string getTitle();
-	virtual int getW();
-	virtual int getH();
-
-    private:
-
-	/*--------------------------------------*\
-	 |*		Attributs		*|
-	 \*-------------------------------------*/
-
-    private:
-
-	// Inputs
-	int w;
-	int h;
-	float dt;
-
-	// Tools
-	dim3 dg;
-	dim3 db;
-	float t;
-
-	//Outputs
-	string title;
-    };
+    //Outputs
+    string title;
+};
 
 #endif
-
-/*----------------------------------------------------------------------*\
- |*			End	 					*|
- \*---------------------------------------------------------------------*/

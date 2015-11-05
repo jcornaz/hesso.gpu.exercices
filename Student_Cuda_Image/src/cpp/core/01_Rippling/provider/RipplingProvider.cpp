@@ -9,6 +9,6 @@ Rippling* RipplingProvider::createMOO() {
   return new Rippling(dw, dh, dt);
 }
 
-Image* RipplingProvider::createGL(void) {
+Image* RipplingProvider::createGL() {
  return new Image(createMOO());
 }
