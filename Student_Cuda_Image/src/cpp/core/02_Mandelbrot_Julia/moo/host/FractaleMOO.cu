@@ -93,5 +93,5 @@ int FractaleMOO::getH() {
  * Override
  */
 string FractaleMOO::getTitle() {
-	return "Fractale_Cuda";
+	return "Fractale_Mandelbrot_Cuda";
 }

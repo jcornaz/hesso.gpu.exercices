@@ -47,8 +47,6 @@ void RayTracing::createSpheres(int nb) {
   size_t sphereSize = sizeof(Sphere);
   size_t ptrSize = sizeof(Sphere*);
 
-  std::cout << "sphere size : " << sphereSize << std::endl;
-
   Sphere* ptrCurrentSphere;
   Sphere* ptrDevCurrentSphere;
 
