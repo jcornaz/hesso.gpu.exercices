@@ -13,17 +13,16 @@ class Julia: public Fractale {
     }
 
     __device__ void colorXY(uchar4* ptrColor, double x, double y, int n ) const {
-
-      int k = this->checkSuit(x, y, n);
+      int nmax = this->checkSuit(x, y, n);
 
       float3 hsb;
 
-      if (k > n) {
+      if (nmax > n) {
         hsb.x = 0;
         hsb.y = 0;
         hsb.z = 0;
       } else {
-        hsb.x = ((float) k) / ((float) n);
+        hsb.x = ((double) nmax) / ((double) n);
         hsb.y = 1;
         hsb.z = 1;
       }
@@ -38,21 +37,18 @@ class Julia: public Fractale {
 
       double a = x;
       double b = y;
-      double aPowed;
-      double bPowed;
+      double aSquared = a * a;
+      double bSquared = b * b;
 
-      const double T = 4.0;
+      while (k <= n) { // TODO && aSquared + bSquared <= 4.0
 
-      while (k <= n) {
-        aPowed = a * a;
-        bPowed = b * b;
-        if (aPowed + bPowed > T) {
-          break;
-        } else {
-          b = 2.0 * a * b + this->c2;
-          a = aPowed - bPowed + this->c1;
-          k++;
-        }
+        b = 2 * a * b + this->c2;
+        a = aSquared - bSquared + this->c1;
+
+        aSquared = a * a;
+        bSquared = b * b;
+
+        k++;
       }
 
       return k;
