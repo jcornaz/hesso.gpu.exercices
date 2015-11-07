@@ -128,7 +128,7 @@ int RipplingMOO::getH()
  */
 string RipplingMOO::getTitle()
     {
-    return "Rippling_OMP";
+    return "Rippling";
     }
 
 /*-------------*\

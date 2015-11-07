@@ -28,8 +28,8 @@ int mainFreeGL(Option& option) {
   const int NB_ITERATION = 1000;
 
   animeAndDelete(RipplingProvider::createMOO(), NB_ITERATION);
-  animeAndDelete(MandelbrotProvider::createMOO(), NB_ITERATION);
-  animeAndDelete(JuliaProvider::createMOO(), NB_ITERATION);
+  // animeAndDelete(MandelbrotProvider::createMOO(), NB_ITERATION);
+  // animeAndDelete(JuliaProvider::createMOO(), NB_ITERATION);
   animeAndDelete(RayTracingProvider::createMOO(), NB_ITERATION);
 
   cout << "\n[FreeGL] end" << endl;

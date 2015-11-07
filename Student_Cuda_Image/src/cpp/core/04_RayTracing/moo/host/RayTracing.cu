@@ -7,7 +7,8 @@
 __global__ void raytracing(uchar4* ptrDevPixels, int w, int h, Sphere** ptrDevSpheres, int nbSheres, float t);
 
 RayTracing::RayTracing(int w, int h, int padding, float dt, int nbSpheres) {
-  this->title = "Ray Tracing Cuda";
+  this->title = "Ray Tracing";
+
   this->w = w;
   this->h = h;
   this->t = 0;

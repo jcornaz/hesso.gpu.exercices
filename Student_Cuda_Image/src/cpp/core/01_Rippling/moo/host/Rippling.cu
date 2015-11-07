@@ -26,7 +26,7 @@ Rippling::Rippling(int w, int h, float dt) {
   this->t = 0;
 
   // Outputs
-  this->title = "Rippling_Cuda";
+  this->title = "Rippling";
 
   //print(dg, db);
   Device::assertDim(dg, db);

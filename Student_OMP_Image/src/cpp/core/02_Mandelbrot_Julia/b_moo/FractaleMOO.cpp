@@ -108,7 +108,7 @@ int FractaleMOO::getH() {
  * Override
  */
 string FractaleMOO::getTitle() {
-	return "Fractale_" + this->algo->getName() + "_OMP";
+	return "Fractale " + this->algo->getName();
 }
 
 void FractaleMOO::setParallelPatern(ParallelPatern parallelPatern) {
