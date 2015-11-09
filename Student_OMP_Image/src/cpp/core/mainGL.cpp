@@ -10,6 +10,7 @@
 #include "MandelbrotProvider.h"
 #include "JuliaProvider.h"
 #include "RayTracingProvider.h"
+#include "NewtonProvider.h"
 #include "HeatTransfertProvider.h"
 
 using std::cout;
@@ -25,6 +26,7 @@ int mainGL(Settings& settings) {
   Viewer<RipplingProvider> rippling(0, 0);
   ViewerZoomable<MandelbrotProvider> mandelbrot(300, 0);
   ViewerZoomable<JuliaProvider> julia(600, 0);
+  ViewerZoomable<NewtonProvider> newton(0, 300);
   Viewer<RayTracingProvider> raytracing(300, 0);
   Viewer<HeatTransfertProvider> heatTransfert(600, 0);
 
