@@ -9,6 +9,7 @@
 #include "RipplingProvider.h"
 #include "MandelbrotProvider.h"
 #include "JuliaProvider.h"
+#include "HeatTransfertProvider.h"
 
 using std::cout;
 using std::endl;
@@ -27,6 +28,7 @@ int mainMOO(Settings& settings) {
   animeAndDestroy(RipplingProvider::createMOO(), NB_ITERATION);
   animeAndDestroy(MandelbrotProvider::createMOO(), NB_ITERATION);
   animeAndDestroy(JuliaProvider::createMOO(), NB_ITERATION);
+  animeAndDestroy(HeatTransfertProvider::createMOO(), NB_ITERATION);
 
   cout << "\n[FreeGL] end" << endl;
 
