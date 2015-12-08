@@ -4,42 +4,46 @@
 #include "OmpTools.h"
 #include "IndiceTools.h"
 
+HeatTransfertMOO::HeatTransfertMOO(unsigned int w, unsigned int h, float* ptrImageInit, float* ptrImageHeater) {
 
-HeatTransfertMOO::HeatTransfertMOO(unsigned int w, unsigned int h, float* imageInit, float* heaters) {
   // Inputs
   this->w = w;
   this->h = h;
+  this->wh = w*h;
+
+  // Images
+  this->ptrImageInit = ptrImageInit;
+  this->ptrImageHeater = ptrImageHeater;
+  this->ptrImageA = (float*) malloc(sizeof(float) * wh);
+  this->ptrImageB = (float*) malloc(sizeof(float) * wh);
+
+  // Initialization
+  this->crush(this->ptrImageHeater, this->ptrImageInit);
+  this->diffuse(this->ptrImageInit, this->ptrImageA);
+  this->crush(this->ptrImageHeater, this->ptrImageA);
 
   // Tools
   this->parallelPatern = OMP_MIXTE;
+  this->iteration = 0;
 }
 
 HeatTransfertMOO::~HeatTransfertMOO(void) {
+  free(this->ptrImageA);
+  free(this->ptrImageB);
 }
 
 /**
  * Override
  */
-void HeatTransfertMOO::process(uchar4* ptrTabPixels,int w,int h) {
-  switch (parallelPatern) {
-    case OMP_ENTRELACEMENT: // Plus lent sur CPU
-      entrelacementOMP(ptrTabPixels, w, h);
-      break;
-
-    case OMP_FORAUTO: // Plus rapide sur CPU
-      forAutoOMP(ptrTabPixels, w, h);
-      break;
-
-    case OMP_MIXTE: // Pour tester que les deux implementations fonctionnent
-      // Note : Des saccades peuvent apparaitre à cause de la grande difference de fps entre la version entrelacer et auto
-      static bool isEntrelacement = true;
-      if (isEntrelacement) {
-        entrelacementOMP(ptrTabPixels, w, h);
-      } else {
-        forAutoOMP(ptrTabPixels, w, h);
-      }
-      isEntrelacement = !isEntrelacement; // Pour swithcer a chaque iteration
-      break;
+void HeatTransfertMOO::process(uchar4* ptrPixels,int w,int h) {
+  if (this->iteration % 2 == 0) {
+    this->diffuse(this->ptrImageA, this->ptrImageB);
+    this->crush(this->ptrImageHeater, this->ptrImageB);
+    this->toScreen(this->ptrImageB, ptrPixels);
+  } else {
+    this->diffuse(this->ptrImageB, this->ptrImageA);
+    this->crush(this->ptrImageHeater, this->ptrImageA);
+    this->toScreen(this->ptrImageA, ptrPixels);
   }
 }
 
@@ -47,15 +51,14 @@ void HeatTransfertMOO::process(uchar4* ptrTabPixels,int w,int h) {
  * Override
  */
 void HeatTransfertMOO::animationStep() {
-  // TODO
+  this->iteration++;
 }
 
 /**
  * Override
  */
 float HeatTransfertMOO::getAnimationPara() {
-  // TODO
-  return 1;
+  return this->iteration;
 }
 
 /**
@@ -83,37 +86,14 @@ void HeatTransfertMOO::setParallelPatern(ParallelPatern parallelPatern) {
   this->parallelPatern = parallelPatern;
 }
 
-/**
- * Code entrainement Cuda
- */
-void HeatTransfertMOO::entrelacementOMP(uchar4* ptrTabPixels, int w, int h) {
-
-  const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
-
-  #pragma omp parallel
-  {
-    const int TID = OmpTools::getTid();
-    const int n = w * h;
-    int s = TID;
-    while ( s < n ) {
-      int i, j;
-      IndiceTools::toIJ(s, this->w, &i, &j);
-      // TODO
-      s++;
-    }
-  }
+void HeatTransfertMOO::diffuse(float* ptrImageInput, float* ptrImageOutput) {
+  // TODO
 }
 
-/**
- * Code naturel et direct OMP
- */
-void HeatTransfertMOO::forAutoOMP(uchar4* ptrTabPixels, int w, int h) {
-  const int n = w * h;
+void HeatTransfertMOO::crush(float* ptrImageHeater, float* ptrImage) {
+  // TODO
+}
 
-  #pragma omp parallel for
-  for (int s = 0; s < n; s ++) {
-    int i, j;
-    IndiceTools::toIJ(s, this->w, &i, &j);
-    // TODO
-  }
+void HeatTransfertMOO::toScreen(float* ptrImage, uchar4* ptrPixels) {
+  // TODO
 }

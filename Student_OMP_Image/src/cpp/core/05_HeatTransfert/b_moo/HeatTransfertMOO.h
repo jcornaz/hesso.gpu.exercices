@@ -5,12 +5,12 @@
 #include "Animable_I.h"
 
 class HeatTransfertMOO: public Animable_I {
-  public:
 
-  	HeatTransfertMOO(unsigned int w, unsigned int h, float* imageInit, float* heaters);
+  public:
+  	HeatTransfertMOO(unsigned int w, unsigned int h, float* ptrImageInit, float* ptrImageHeater);
   	virtual ~HeatTransfertMOO();
 
-  	virtual void process(uchar4* ptrDevPixels, int w, int h);
+  	virtual void process(uchar4* ptrPixels, int w, int h);
   	virtual void animationStep();
 
   	virtual float getAnimationPara();
@@ -20,26 +20,25 @@ class HeatTransfertMOO: public Animable_I {
 
   	virtual void setParallelPatern(ParallelPatern parallelPatern);
 
-    private:
-
-  	void entrelacementOMP(uchar4* ptrTabPixels, int w, int h); 	// Code entrainement Cuda
-  	void forAutoOMP(uchar4* ptrTabPixels, int w, int h); 		// Code naturel et direct OMP, plus performant
-
-
   private:
+    void diffuse(float* ptrImageInput, float* ptrImageOutput);
+    void crush(float* ptrImageHeater, float* ptrImage);
+    void toScreen(float* ptrImage, uchar4* ptrPixels);
 
     // Inputs
   	unsigned int w;
   	unsigned int h;
+    unsigned int wh;
 
     // Images
-    float* imageInit;
-    float* imageHeater;
-    float* imageA;
-    float* imageB;
+    float* ptrImageInit;
+    float* ptrImageHeater;
+    float* ptrImageA;
+    float* ptrImageB;
 
   	// Tools
   	ParallelPatern parallelPatern;
+    unsigned int iteration;
 };
 
 #endif
