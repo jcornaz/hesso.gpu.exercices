@@ -39,6 +39,7 @@ class HeatTransfertMOO: public Animable_I {
   	// Tools
   	ParallelPatern parallelPatern;
     unsigned int iteration;
+    unsigned int nbThreads;
 };
 
 #endif

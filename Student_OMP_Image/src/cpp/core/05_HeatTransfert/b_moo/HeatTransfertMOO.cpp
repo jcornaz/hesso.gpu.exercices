@@ -1,3 +1,4 @@
+#include <iostream>
 #include <omp.h>
 
 #include "HeatTransfertMOO.h"
@@ -91,7 +92,19 @@ void HeatTransfertMOO::diffuse(float* ptrImageInput, float* ptrImageOutput) {
 }
 
 void HeatTransfertMOO::crush(float* ptrImageHeater, float* ptrImage) {
-  // TODO
+  #pragma omp parallel
+  {
+    const unsigned int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+    const unsigned int TID = OmpTools::getTid();
+    unsigned int s = TID;
+
+    while ( s < this->wh ) {
+      if (ptrImageHeater[s] > 0.0) {
+        ptrImage[s] = ptrImageHeater[s];
+      }
+      s += NB_THREADS;
+    }
+  }
 }
 
 void HeatTransfertMOO::toScreen(float* ptrImage, uchar4* ptrPixels) {
