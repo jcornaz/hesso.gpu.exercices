@@ -37,5 +37,5 @@ Animable_I* HeatTransfertProvider::createMOO() {
     }
   }
 
-  return new HeatTransfertMOO(w, h, imageInit, imageHeater);
+  return new HeatTransfertMOO(w, h, imageInit, imageHeater, 0.1);
 }

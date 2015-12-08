@@ -3,11 +3,12 @@
 
 #include "cudaType.h"
 #include "Animable_I.h"
+#include "HeatTransfertMath.h"
 
 class HeatTransfertMOO: public Animable_I {
 
   public:
-  	HeatTransfertMOO(unsigned int w, unsigned int h, float* ptrImageInit, float* ptrImageHeater);
+  	HeatTransfertMOO(unsigned int w, unsigned int h, float* ptrImageInit, float* ptrImageHeater, float propSpeed);
   	virtual ~HeatTransfertMOO();
 
   	virtual void process(uchar4* ptrPixels, int w, int h);
@@ -35,11 +36,12 @@ class HeatTransfertMOO: public Animable_I {
     float* ptrImageHeater;
     float* ptrImageA;
     float* ptrImageB;
-
+    float propSpeed;
+    
   	// Tools
   	ParallelPatern parallelPatern;
     unsigned int iteration;
-    unsigned int nbThreads;
+    HeatTransfertMath math;
 };
 
 #endif

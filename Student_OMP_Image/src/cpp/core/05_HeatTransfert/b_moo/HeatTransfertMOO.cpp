@@ -5,7 +5,7 @@
 #include "OmpTools.h"
 #include "IndiceTools.h"
 
-HeatTransfertMOO::HeatTransfertMOO(unsigned int w, unsigned int h, float* ptrImageInit, float* ptrImageHeater) {
+HeatTransfertMOO::HeatTransfertMOO(unsigned int w, unsigned int h, float* ptrImageInit, float* ptrImageHeater, float propSpeed) {
 
   // Inputs
   this->w = w;
@@ -26,6 +26,7 @@ HeatTransfertMOO::HeatTransfertMOO(unsigned int w, unsigned int h, float* ptrIma
   // Tools
   this->parallelPatern = OMP_MIXTE;
   this->iteration = 0;
+  this->propSpeed = propSpeed;
 }
 
 HeatTransfertMOO::~HeatTransfertMOO(void) {
@@ -88,7 +89,31 @@ void HeatTransfertMOO::setParallelPatern(ParallelPatern parallelPatern) {
 }
 
 void HeatTransfertMOO::diffuse(float* ptrImageInput, float* ptrImageOutput) {
-  // TODO
+  #pragma omp parallel
+  {
+    const unsigned int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+    const unsigned int TID = OmpTools::getTid();
+    unsigned int s = TID;
+
+    while ( s < this->wh ) {
+      int i, j;
+			IndiceTools::toIJ(s, this->w, &i, &j);
+      if (i > 0 && i < (this->h - 1) && j > 0 && j < (this->w - 1)) {
+
+        float neighborsHeat[4];
+        neighborsHeat[0] = ptrImageInput[IndiceTools::toS(this->w, i - 1, j)];
+        neighborsHeat[1] = ptrImageInput[IndiceTools::toS(this->w, i + 1, j)];
+        neighborsHeat[2] = ptrImageInput[IndiceTools::toS(this->w, i, j - 1)];
+        neighborsHeat[3] = ptrImageInput[IndiceTools::toS(this->w, i, j + 1)];
+
+        ptrImageOutput[s] = this->math.computeHeat(ptrImageInput[s], neighborsHeat, 4, this->propSpeed);
+      } else {
+        ptrImageOutput[s] = ptrImageInput[s];
+      }
+
+      s += NB_THREADS;
+    }
+  }
 }
 
 void HeatTransfertMOO::crush(float* ptrImageHeater, float* ptrImage) {
