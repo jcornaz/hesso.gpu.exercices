@@ -4,8 +4,9 @@
 #include "HeatTransfertMOO.h"
 #include "OmpTools.h"
 #include "IndiceTools.h"
+#include "ColorTools.h"
 
-HeatTransfertMOO::HeatTransfertMOO(unsigned int w, unsigned int h, float* ptrImageInit, float* ptrImageHeater, float propSpeed) {
+HeatTransfertMOO::HeatTransfertMOO(unsigned int w, unsigned int h, float* ptrImageInit, float* ptrImageHeater, float propSpeed){
 
   // Inputs
   this->w = w;
@@ -29,7 +30,7 @@ HeatTransfertMOO::HeatTransfertMOO(unsigned int w, unsigned int h, float* ptrIma
   this->propSpeed = propSpeed;
 }
 
-HeatTransfertMOO::~HeatTransfertMOO(void) {
+HeatTransfertMOO::~HeatTransfertMOO() {
   free(this->ptrImageA);
   free(this->ptrImageB);
 }
@@ -89,9 +90,10 @@ void HeatTransfertMOO::setParallelPatern(ParallelPatern parallelPatern) {
 }
 
 void HeatTransfertMOO::diffuse(float* ptrImageInput, float* ptrImageOutput) {
+  const unsigned int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+
   #pragma omp parallel
   {
-    const unsigned int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
     const unsigned int TID = OmpTools::getTid();
     unsigned int s = TID;
 
@@ -117,9 +119,10 @@ void HeatTransfertMOO::diffuse(float* ptrImageInput, float* ptrImageOutput) {
 }
 
 void HeatTransfertMOO::crush(float* ptrImageHeater, float* ptrImage) {
+  const unsigned int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+
   #pragma omp parallel
   {
-    const unsigned int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
     const unsigned int TID = OmpTools::getTid();
     unsigned int s = TID;
 
@@ -133,5 +136,20 @@ void HeatTransfertMOO::crush(float* ptrImageHeater, float* ptrImage) {
 }
 
 void HeatTransfertMOO::toScreen(float* ptrImage, uchar4* ptrPixels) {
-  // TODO
+  const unsigned int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+
+  #pragma omp parallel
+  {
+    const unsigned int TID = OmpTools::getTid();
+    unsigned int s = TID;
+
+    while ( s < this->wh ) {
+
+      float hue = 0.7 - ptrImage[s] * 0.7;
+      ColorTools::HSB_TO_RVB(hue, 1, 1, &ptrPixels[s]);
+      ptrPixels[s].w = 255;
+
+      s += NB_THREADS;
+    }
+  }
 }

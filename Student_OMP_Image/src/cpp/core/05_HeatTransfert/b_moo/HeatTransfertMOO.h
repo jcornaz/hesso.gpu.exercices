@@ -37,7 +37,7 @@ class HeatTransfertMOO: public Animable_I {
     float* ptrImageA;
     float* ptrImageB;
     float propSpeed;
-    
+
   	// Tools
   	ParallelPatern parallelPatern;
     unsigned int iteration;
