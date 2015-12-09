@@ -1,11 +1,12 @@
-#include "Indice2D.h"
+#ifndef REDUCTION_H_
+#define REDUCTION_H_
+
 #include "cudaTools.h"
 
-__device__ void ecrasement(float* arraySM, int size) {
-  // Intra-block
-
+template<typename T>
+__device__ void intraBlockReduction(T* arraySM, int size) {
   const int NB_THREAD_LOCAL = blockDim.x * blockDim.y;
-  const int TID_LOCAL = blockId.x + blockId.y * blockDim.x;
+  const int TID_LOCAL = blockIdx.x + blockIdx.y * blockDim.x;
 
   int n = size;
   int half = size / 2;
@@ -19,18 +20,19 @@ __device__ void ecrasement(float* arraySM, int size) {
 
     __syncthreads();
 
-    n = hafl;
+    n = half;
     half = n / 2;
   }
 }
 
-__device__ void interbloc(float* arraySM, int size, float* resultGM) {
-  // inter-block
-
+template<typename T>
+__device__ void interBlocReduction(T* arraySM, int size, T* resultGM) {
   const int NB_THREAD_LOCAL = blockDim.x * blockDim.y;
-  const int TID_LOCAL = blockId.x + blockId.y * blockDim.x;
+  const int TID_LOCAL = blockIdx.x + blockIdx.y * blockDim.x;
 
   if (TID_LOCAL == 0) {
     atomicAdd(resultGM, arraySM[0]);
   }
 }
+
+#endif
