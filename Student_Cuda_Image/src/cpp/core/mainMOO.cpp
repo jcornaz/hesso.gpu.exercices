@@ -11,6 +11,7 @@
 #include "MandelbrotProvider.h"
 #include "JuliaProvider.h"
 #include "RayTracingProvider.h"
+#include "HeatTransfertProvider.h"
 
 using std::cout;
 using std::endl;
@@ -28,9 +29,10 @@ int mainFreeGL(Option& option) {
   const int NB_ITERATION = 1000;
 
   animeAndDelete(RipplingProvider::createMOO(), NB_ITERATION);
-  // animeAndDelete(MandelbrotProvider::createMOO(), NB_ITERATION);
-  // animeAndDelete(JuliaProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(MandelbrotProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(JuliaProvider::createMOO(), NB_ITERATION);
   animeAndDelete(RayTracingProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(HeatTransfertProvider::createMOO(), NB_ITERATION);
 
   cout << "\n[FreeGL] end" << endl;
 
