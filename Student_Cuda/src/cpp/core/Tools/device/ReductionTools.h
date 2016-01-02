@@ -1,5 +1,5 @@
-#ifndef REDUCTION_H_
-#define REDUCTION_H_
+#ifndef REDUCTION_TOOLS_H_
+#define REDUCTION_TOOLS_H_
 
 #include "cudaTools.h"
 
