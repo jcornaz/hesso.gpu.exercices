@@ -1,34 +1,46 @@
 #include "ReductionTools.h"
 #include "cudaTools.h"
 #include "CustomMathTools.h"
+#include "curand_kernel.h"
 
-__global__ void computePIWithMonteCarlo(float* ptrDevResult, int nbSlices);
-__device__ float monteCarloIntraThreadReduction(int nbSlices);
+__global__ void computePIWithMonteCarlo(int* ptrDevResult, curandState* ptrDevTabGenerators, int nbGen);
+__device__ int monteCarloIntraThreadReduction(curandState* ptrDevTabGenerators, int nbGen);
+__device__ void generateRandomPoint(curandState* ptrDevGenerator, float xMin, float xMax, float yMin, float yMax, float* x, float* y);
 
-__global__ void computePIWithMonteCarlo(float* ptrDevResult, int nbGenerations) {
+__global__ void computePIWithMonteCarlo(int* ptrDevResult, curandState* ptrDevTabGenerators, int nbGen) {
   const int NB_THREADS_LOCAL = blockDim.x;
   const int TID_LOCAL = threadIdx.x;
 
-  __shared__ float ptrDevArraySM[1024];
+  __shared__ int ptrDevArraySM[1024];
 
-  ptrDevArraySM[TID_LOCAL] = monteCarloIntraThreadReduction(nbGenerations);
+  ptrDevArraySM[TID_LOCAL] = monteCarloIntraThreadReduction(ptrDevTabGenerators, nbGen);
   __syncthreads();
-  ReductionTools::template intraBlockReduction<float>(ptrDevArraySM, NB_THREADS_LOCAL);
-  ReductionTools::template interBlocReduction<float>(ptrDevArraySM, NB_THREADS_LOCAL, ptrDevResult);
+  ReductionTools::template intraBlockReduction<int>(ptrDevArraySM, NB_THREADS_LOCAL);
+  ReductionTools::template interBlocReduction<int>(ptrDevArraySM, NB_THREADS_LOCAL, ptrDevResult);
 }
 
-__device__ float monteCarloIntraThreadReduction(int nbSlices) {
+__device__ int monteCarloIntraThreadReduction(curandState* ptrDevTabGenerators, int nbGen) {
   const int NB_THREADS = gridDim.x * blockDim.x;
   const int TID = threadIdx.x + blockIdx.x * blockDim.x;
 
-  float dx = 1. / nbSlices;
-
-  float threadSum = 0.0;
+  int threadSum = 0;
+  float x, y;
   int s = TID;
-  while (s < nbSlices) {
-    threadSum += CustomMathTools::fpi(s * dx);
+  while (s < nbGen) {
+
+    generateRandomPoint(&ptrDevTabGenerators[TID], 0, 1, 0, 4, &x, &y);
+
+    if (y <= CustomMathTools::fpi(x)) {
+      threadSum++;
+    }
+
     s += NB_THREADS;
   }
 
-  return threadSum / nbSlices;
+  return threadSum;
+}
+
+__device__ void generateRandomPoint(curandState* ptrDevGenerator, float xMin, float xMax, float yMin, float yMax, float* x, float* y) {
+  *x = curand_uniform(ptrDevGenerator) * (xMax - xMin) + xMin;
+  *y = curand_uniform(ptrDevGenerator) * (yMax - yMin) + yMin;
 }

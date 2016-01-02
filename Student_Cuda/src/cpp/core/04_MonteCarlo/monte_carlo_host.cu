@@ -2,28 +2,39 @@
 
 #include "cudaTools.h"
 #include "Device.h"
+#include "curandTools.h"
 
-extern __global__ void computePIWithMonteCarlo(float* ptrDevResult, int nbSlices);
+extern __global__ void computePIWithMonteCarlo(int* ptrDevResult, curandState* ptrDevTabGenerators, int nbGen);
 
 bool isMonteCarloOk();
 
 bool isMonteCarloOk() {
 
-  dim3 dg = dim3(128, 1, 1);
-  dim3 db = dim3(512, 1, 1);
+  const int NB_BLOCS = 128;
+  const int NB_THREADS_BY_BLOCK = 512;
+  const int NB_GENERATIONS = 1000000;
+
+  dim3 dg = dim3(NB_BLOCS, 1, 1);
+  dim3 db = dim3(NB_THREADS_BY_BLOCK, 1, 1);
 
   Device::assertDim(dg, db);
 
-  float piValue;
-  float* ptrDevResult;
+  int nbPointsOnIntegralArea;
+  int* ptrDevResult;
+  curandState* ptrDevTabGenerators;
 
-  HANDLE_ERROR(cudaMalloc(&ptrDevResult, sizeof(float)));
-  HANDLE_ERROR(cudaMemset(ptrDevResult, 0, sizeof(float)));
+  HANDLE_ERROR(cudaMalloc(&ptrDevResult, sizeof(int)));
+  HANDLE_ERROR(cudaMalloc(&ptrDevTabGenerators, NB_BLOCS * NB_THREADS_BY_BLOCK + sizeof(curandState)));
+  HANDLE_ERROR(cudaMemset(ptrDevResult, 0, sizeof(int)));
 
-  computePIWithMonteCarlo<<<dg,db>>>(ptrDevResult, 1000000);
+  setup_kernel_rand<<<dg,db>>>(ptrDevTabGenerators, 0);
+  computePIWithMonteCarlo<<<dg,db>>>(ptrDevResult, ptrDevTabGenerators, NB_GENERATIONS);
 
-  HANDLE_ERROR(cudaMemcpy(&piValue, ptrDevResult, sizeof(float), cudaMemcpyDeviceToHost));
+  HANDLE_ERROR(cudaMemcpy(&nbPointsOnIntegralArea, ptrDevResult, sizeof(int), cudaMemcpyDeviceToHost));
   HANDLE_ERROR(cudaFree(ptrDevResult));
+  HANDLE_ERROR(cudaFree(ptrDevTabGenerators));
+
+  float piValue = nbPointsOnIntegralArea * 4.0 / NB_GENERATIONS;
 
   std::cout << "PI = " << piValue << " (with Monte Carlo)" << std::endl;
 
