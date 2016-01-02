@@ -16,6 +16,7 @@ extern bool useHello();
 extern bool useAddVecteur();
 extern bool useSaucisson();
 extern bool useMonteCarlo();
+extern bool useMonteCarloMultiGPU();
 
 /*--------------------------------------*\
  |*		Public			*|
@@ -44,6 +45,7 @@ int mainCore()
     // isOk &= useAddVecteur();
     isOk &= useSaucisson();
     isOk &= useMonteCarlo();
+    isOk &= useMonteCarloMultiGPU();
 
     cout << "\nisOK = " << isOk << endl;
     cout << "\nEnd : mainCore" << endl;
