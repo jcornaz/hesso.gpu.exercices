@@ -1,7 +1,7 @@
-extern bool isPIok();
+extern bool isPIWithSlicingOk();
 
 bool useSaucisson();
 
 bool useSaucisson() {
-  return isPIok();
+  return isPIWithSlicingOk();
 }
