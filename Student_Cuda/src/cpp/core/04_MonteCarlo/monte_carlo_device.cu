@@ -1,9 +1,9 @@
 #include "ReductionTools.h"
 #include "cudaTools.h"
+#include "CustomMathTools.h"
 
 __global__ void computePIWithMonteCarlo(float* ptrDevResult, int nbSlices);
 __device__ float monteCarloIntraThreadReduction(int nbSlices);
-__device__ float mc_fpi(float x);
 
 __global__ void computePIWithMonteCarlo(float* ptrDevResult, int nbGenerations) {
   const int NB_THREADS_LOCAL = blockDim.x;
@@ -26,13 +26,9 @@ __device__ float monteCarloIntraThreadReduction(int nbSlices) {
   float threadSum = 0.0;
   int s = TID;
   while (s < nbSlices) {
-    threadSum += mc_fpi(s * dx);
+    threadSum += CustomMathTools::fpi(s * dx);
     s += NB_THREADS;
   }
 
   return threadSum / nbSlices;
-}
-
-__device__ float mc_fpi(float x) {
-  return 4 / (1 + x * x);
 }
