@@ -9,6 +9,7 @@
 #include "RipplingProvider.h"
 #include "MandelbrotProvider.h"
 #include "JuliaProvider.h"
+#include "RayTracingProvider.h"
 #include "HeatTransfertProvider.h"
 
 using std::cout;
@@ -22,9 +23,10 @@ int mainGL(Settings& settings) {
   GLUTImageViewers::init(settings.getArgc(), settings.getArgv());
 
   Viewer<RipplingProvider> rippling(0, 0);
-  ViewerZoomable<MandelbrotProvider> mandelbrot(640, 0);
-  ViewerZoomable<JuliaProvider> julia(0, 640);
-  Viewer<HeatTransfertProvider> heatTransfert(640, 640);
+  ViewerZoomable<MandelbrotProvider> mandelbrot(300, 0);
+  ViewerZoomable<JuliaProvider> julia(600, 0);
+  Viewer<RayTracingProvider> raytracing(300, 0);
+  Viewer<HeatTransfertProvider> heatTransfert(600, 0);
 
   GLUTImageViewers::runALL();  // Bloquant, Tant qu'une fenetre est ouverte
 
