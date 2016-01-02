@@ -15,8 +15,8 @@ __global__ void computePIWithMonteCarlo(int* ptrDevResult, curandState* ptrDevTa
 
   ptrDevArraySM[TID_LOCAL] = monteCarloIntraThreadReduction(ptrDevTabGenerators, nbGen);
   __syncthreads();
-  ReductionTools::template intraBlockReduction<int>(ptrDevArraySM, NB_THREADS_LOCAL);
-  ReductionTools::template interBlocReduction<int>(ptrDevArraySM, NB_THREADS_LOCAL, ptrDevResult);
+  ReductionTools::template intraBlockSumReduction<int>(ptrDevArraySM, NB_THREADS_LOCAL);
+  ReductionTools::template interBlockSumReduction<int>(ptrDevArraySM, ptrDevResult);
 }
 
 __device__ int monteCarloIntraThreadReduction(curandState* ptrDevTabGenerators, int nbGen) {

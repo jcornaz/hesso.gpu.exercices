@@ -23,8 +23,8 @@ __global__ void computePIWithSlicing(float* ptrDevResult, int nbSlices) {
 
   ptrDevArraySM[TID_LOCAL] = slicingIntraThreadReduction(nbSlices);
   __syncthreads();
-  ReductionTools::template intraBlockReduction<float>(ptrDevArraySM, NB_THREADS_LOCAL);
-  ReductionTools::template interBlocReduction<float>(ptrDevArraySM, NB_THREADS_LOCAL, ptrDevResult);
+  ReductionTools::template intraBlockSumReduction<float>(ptrDevArraySM, NB_THREADS_LOCAL);
+  ReductionTools::template interBlockSumReduction<float>(ptrDevArraySM, ptrDevResult);
 }
 
 /**

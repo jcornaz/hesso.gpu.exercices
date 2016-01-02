@@ -7,7 +7,7 @@ class ReductionTools {
 
   public:
     template<typename T>
-    __device__ static void intraBlockReduction(T* arraySM, int size) {
+    __device__ static void intraBlockSumReduction(T* arraySM, int size) {
       const int NB_THREADS_LOCAL = blockDim.x * blockDim.y * blockDim.z;
       const int TID_LOCAL = threadIdx.x + blockDim.x * threadIdx.y + blockDim.x * blockDim.y * threadIdx.z;
 
@@ -29,7 +29,7 @@ class ReductionTools {
     }
 
     template<typename T>
-    __device__ static void interBlocReduction(T* arraySM, int size, T* resultGM) {
+    __device__ static void interBlockSumReduction(T* arraySM, T* resultGM) {
       const int TID_LOCAL = threadIdx.x + blockDim.x * threadIdx.y + blockDim.x * blockDim.y * threadIdx.z;
 
       if (TID_LOCAL == 0) {
