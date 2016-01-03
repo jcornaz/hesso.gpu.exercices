@@ -13,7 +13,6 @@ __global__ void processJulia(uchar4* ptrDevPixels, int w, int h, int n, float c1
 
 FractaleMOO::FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int nmin, int nmax) {
 	this->algo = algo;
-	this->domain = domain;
   this->nmin = nmin;
   this->nmax = nmax;
   this->w = w;
@@ -21,15 +20,20 @@ FractaleMOO::FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int 
   this->n = this->nmin;
 	this->step = 1;
 
-	this->dg = dim3(1, 1, 1);
-	this->db = dim3(1, 1, 1);
+	this->dg = dim3(16, 16, 1);
+	this->db = dim3(32, 32, 1);
 
 	Device::assertDim(dg, db);
+
+	HANDLE_ERROR(cudaMalloc(&this->domain, sizeof(DomaineMath)));
+	HANDLE_ERROR(cudaMemcpy(this->domain, domain, sizeof(DomaineMath), cudaMemcpyHostToDevice));
+
+	delete domain;
 }
 
 FractaleMOO::~FractaleMOO() {
   delete this->algo;
-	delete this->domain;
+	HANDLE_ERROR(cudaFree(this->domain));
 }
 
 /**

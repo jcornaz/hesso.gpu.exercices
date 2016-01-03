@@ -40,7 +40,7 @@ class Julia: public Fractale {
       double aSquared = a * a;
       double bSquared = b * b;
 
-      while (k <= n) { // TODO && aSquared + bSquared <= 4.0
+      while (k <= n && aSquared + bSquared <= 4.0) {
 
         b = 2 * a * b + this->c2;
         a = aSquared - bSquared + this->c1;

@@ -38,7 +38,7 @@ class Mandelbrot: public Fractale {
       double aSquared = 0.0;
       double bSquared = 0.0;
 
-      while (k <= n) { // TODO && aSquared + bSquared <= 4.0
+      while (k <= n && aSquared + bSquared <= 4.0) {
 
         b = 2 * a * b + y;
         a = aSquared - bSquared + x;
