@@ -40,13 +40,13 @@ FractaleMOO::~FractaleMOO() {
  * Override
  */
 void FractaleMOO::process(uchar4* ptrDevPixels, int w, int h, const DomaineMath& domaineMath) {
-	// if (Mandelbrot* mandelbrot = dynamic_cast<Mandelbrot*>(this->algo)) {
+	if (Mandelbrot* mandelbrot = dynamic_cast<Mandelbrot*>(this->algo)) {
 		processMandelbrot<<<dg,db>>>(ptrDevPixels, w, h, this->n, domaineMath );
-	// } else if (Julia* julia = dynamic_cast<Julia*>(this->algo)) {
-	// 	processJulia<<<dg,db>>>(ptrDevPixels, w, h, this->n, julia->c1, julia->c2, domaineMath );
-	// } else {
-	// 	throw "Not supported algorithm";
-	// }
+	} else if (Julia* julia = dynamic_cast<Julia*>(this->algo)) {
+		processJulia<<<dg,db>>>(ptrDevPixels, w, h, this->n, julia->c1, julia->c2, domaineMath );
+	} else {
+		throw "Not supported algorithm";
+	}
 	// std::cout << cudaGetErrorString( cudaGetLastError() ) << std::endl;
 }
 
