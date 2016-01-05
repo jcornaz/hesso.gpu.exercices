@@ -10,6 +10,7 @@
 #include "RipplingProvider.h"
 #include "MandelbrotProvider.h"
 #include "JuliaProvider.h"
+#include "NewtonProvider.h"
 #include "RayTracingProvider.h"
 #include "HeatTransfertProvider.h"
 
@@ -31,6 +32,7 @@ int mainFreeGL(Option& option) {
   animeAndDelete(RipplingProvider::createMOO(), NB_ITERATION);
   animeAndDelete(MandelbrotProvider::createMOO(), NB_ITERATION);
   animeAndDelete(JuliaProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(NewtonProvider::createMOO(), NB_ITERATION);
   animeAndDelete(RayTracingProvider::createMOO(), NB_ITERATION);
   animeAndDelete(HeatTransfertProvider::createMOO(), NB_ITERATION);
 
