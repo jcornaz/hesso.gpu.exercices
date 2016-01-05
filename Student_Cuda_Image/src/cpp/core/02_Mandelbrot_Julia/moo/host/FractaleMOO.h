@@ -30,7 +30,8 @@ class FractaleMOO: public AnimableFonctionel_I {
   	unsigned int nmin;
   	unsigned int nmax;
     int step;
-  	DomaineMath* domain;
+  	DomaineMath* ptrDevDomain;
+    DomaineMath* ptrDomain;
   	Fractale* algo;
 
   	// Tools

@@ -2,8 +2,6 @@
 #include <omp.h>
 
 #include "FractaleMOO.h"
-#include "OmpTools.h"
-#include "IndiceTools.h"
 #include "Device.h"
 #include "Mandelbrot.h"
 #include "Julia.h"
@@ -12,6 +10,7 @@ __global__ void processMandelbrot(uchar4* ptrDevPixels, int w, int h, int n, con
 __global__ void processJulia(uchar4* ptrDevPixels, int w, int h, int n, float c1, float c2, const DomaineMath& domaineMath);
 
 FractaleMOO::FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int nmin, int nmax) {
+
 	this->algo = algo;
   this->nmin = nmin;
   this->nmax = nmax;
@@ -19,39 +18,47 @@ FractaleMOO::FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int 
   this->h = h;
   this->n = this->nmin;
 	this->step = 1;
+	this->ptrDomain = domain;
 
 	this->dg = dim3(16, 16, 1);
 	this->db = dim3(32, 32, 1);
 
 	Device::assertDim(dg, db);
 
-	HANDLE_ERROR(cudaMalloc(&this->domain, sizeof(DomaineMath)));
-	HANDLE_ERROR(cudaMemcpy(this->domain, domain, sizeof(DomaineMath), cudaMemcpyHostToDevice));
+	HANDLE_ERROR(cudaMalloc(&this->ptrDevDomain, sizeof(DomaineMath)));
 
 	delete domain;
 }
 
 FractaleMOO::~FractaleMOO() {
   delete this->algo;
-	HANDLE_ERROR(cudaFree(this->domain));
+	delete this->ptrDomain;
+
+	HANDLE_ERROR(cudaFree(this->ptrDevDomain));
 }
 
 /**
  * Override
  */
 void FractaleMOO::process(uchar4* ptrDevPixels, int w, int h, const DomaineMath& domaineMath) {
+
+	HANDLE_ERROR(cudaMemcpy(this->ptrDevDomain, &domaineMath, sizeof(DomaineMath), cudaMemcpyHostToDevice));
+
 	if (Mandelbrot* mandelbrot = dynamic_cast<Mandelbrot*>(this->algo)) {
-		processMandelbrot<<<dg,db>>>(ptrDevPixels, w, h, this->n, domaineMath );
+		processMandelbrot<<<dg,db>>>(ptrDevPixels, w, h, this->n, *this->ptrDevDomain );
 	} else if (Julia* julia = dynamic_cast<Julia*>(this->algo)) {
-		processJulia<<<dg,db>>>(ptrDevPixels, w, h, this->n, julia->c1, julia->c2, domaineMath );
+		processJulia<<<dg,db>>>(ptrDevPixels, w, h, this->n, julia->c1, julia->c2, *this->ptrDevDomain );
 	} else {
 		throw "Not supported algorithm";
 	}
 	// std::cout << cudaGetErrorString( cudaGetLastError() ) << std::endl;
 }
 
+/**
+ * Override
+ */
 DomaineMath* FractaleMOO::getDomaineMathInit() {
-	return this->domain;
+	return this->ptrDomain;
 }
 
 /**
