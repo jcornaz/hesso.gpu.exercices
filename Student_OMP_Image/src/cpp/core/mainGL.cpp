@@ -27,8 +27,8 @@ int mainGL(Settings& settings) {
   ViewerZoomable<MandelbrotProvider> mandelbrot(300, 0);
   ViewerZoomable<JuliaProvider> julia(600, 0);
   ViewerZoomable<NewtonProvider> newton(0, 300);
-  Viewer<RayTracingProvider> raytracing(300, 0);
-  Viewer<HeatTransfertProvider> heatTransfert(600, 0);
+  Viewer<RayTracingProvider> raytracing(300, 300);
+  Viewer<HeatTransfertProvider> heatTransfert(600, 300);
 
   GLUTImageViewers::runALL();  // Bloquant, Tant qu'une fenetre est ouverte
 

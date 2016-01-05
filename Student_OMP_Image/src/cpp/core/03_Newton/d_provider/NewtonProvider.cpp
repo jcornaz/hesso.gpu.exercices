@@ -8,7 +8,7 @@ ImageFonctionel* NewtonProvider::createGL() {
 }
 
 AnimableFonctionel_I* NewtonProvider::createMOO() {
-  DomaineMath* domain = new DomaineMath(-2.0, 2.0, -2.0, 2.0);
+  DomaineMath* domain = new DomaineMath(-2.0, -2.0, 2.0, 2.0);
 
   return new NewtonMOO(640, 640, domain);
 }
