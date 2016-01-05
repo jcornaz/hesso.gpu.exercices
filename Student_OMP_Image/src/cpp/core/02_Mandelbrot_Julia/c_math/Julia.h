@@ -5,29 +5,28 @@
 
 class Julia: public Fractale {
   public:
-    Julia(float c1, float c2) {
+    Julia(double c1, double c2) {
       this->c1 = c1;
       this->c2 = c2;
     }
 
-  	int checkSuit(float x, float y, int n) const {
+  	int checkSuit(double x, double y, int n) const {
       int k = 0;
 
-      float a = x;
-      float b = y;
-      float aPowed;
-      float bPowed;
+      double a = x;
+      double b = y;
+      double aSquared = a * a;
+      double bSquared = b * b;
 
-      while (k <= n) {
-        aPowed = a * a;
-        bPowed = b * b;
-        if (aPowed + bPowed > 4) {
-          break;
-        } else {
-          b = 2 * a * b + this->c2;
-          a = aPowed - bPowed + this->c1;
-          k++;
-        }
+      while (k <= n && aSquared + bSquared <= 4.0) {
+
+        b = 2 * a * b + this->c2;
+        a = aSquared - bSquared + this->c1;
+
+        aSquared = a * a;
+        bSquared = b * b;
+
+        k++;
       }
 
       return k;
@@ -38,8 +37,8 @@ class Julia: public Fractale {
     }
 
   private:
-    float c1;
-    float c2;
+    double c1;
+    double c2;
 };
 
 #endif

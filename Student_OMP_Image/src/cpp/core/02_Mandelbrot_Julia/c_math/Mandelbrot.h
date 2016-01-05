@@ -7,24 +7,23 @@ class Mandelbrot: public Fractale {
 
   public:
 
-  	int checkSuit(float x, float y, int n) const {
+  	int checkSuit(double x, double y, int n) const {
       int k = 0;
 
-      float a = 0;
-      float b = 0;
-      float aPowed;
-      float bPowed;
+      double a = 0.0;
+      double b = 0.0;
+      double aSquared = 0.0;
+      double bSquared = 0.0;
 
-      while (k <= n) {
-        aPowed = a * a;
-        bPowed = b * b;
-        if (aPowed + bPowed > 4) {
-          break;
-        } else {
-          b = 2 * a * b + y;
-          a = aPowed - bPowed + x;
-          k++;
-        }
+      while (k <= n && aSquared + bSquared <= 4.0) {
+
+        b = 2 * a * b + y;
+        a = aSquared - bSquared + x;
+
+        aSquared = a * a;
+        bSquared = b * b;
+
+        k++;
       }
 
       return k;
