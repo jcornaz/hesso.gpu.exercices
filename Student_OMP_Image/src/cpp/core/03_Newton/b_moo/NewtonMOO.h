@@ -4,6 +4,7 @@
 #include "cudaType.h"
 #include "AnimableFonctionel_I.h"
 #include "DomaineMath.h"
+#include "NewtonMath.h"
 
 class NewtonMOO: public AnimableFonctionel_I {
 
@@ -30,7 +31,9 @@ class NewtonMOO: public AnimableFonctionel_I {
   	// Inputs
   	unsigned int w;
   	unsigned int h;
+    unsigned int n;
   	DomaineMath* domain;
+  	NewtonMath* math;
 
   	// Tools
   	ParallelPatern parallelPatern;

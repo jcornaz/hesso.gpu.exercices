@@ -9,20 +9,22 @@ const unsigned int NewtonMOO::NB_THREADS = OmpTools::setAndGetNaturalGranularity
 
 NewtonMOO::NewtonMOO(int w, int h, DomaineMath* domain) {
 	this->domain = domain;
+	this->math = new NewtonMath(0.001, 25);
   this->w = w;
   this->h = h;
+	this->n = 0;
   this->parallelPatern = OMP_MIXTE;
 }
 
 NewtonMOO::~NewtonMOO() {
 	delete this->domain;
+	delete this->math;
 }
 
 /**
  * Override
  */
 void NewtonMOO::process( uchar4* ptrTabPixels, int w, int h, const DomaineMath& domaineMath ) {
-
 
 	switch (parallelPatern) {
 
@@ -63,14 +65,14 @@ DomaineMath* NewtonMOO::getDomaineMathInit() {
  * Override
  */
 void NewtonMOO::animationStep() {
-	// TODO
+	this->n++;
 }
 
 /**
  * Override
  */
 float NewtonMOO::getAnimationPara() {
-	return 0.0; // TODO
+	return (float) this->n;
 }
 
 /**
@@ -113,10 +115,8 @@ void NewtonMOO::entrelacementOMP(uchar4* ptrTabPixels, int w, int h, const Domai
 
 		int s = TID;
 		while (s < WH) {
-			IndiceTools::toIJ(s, w, &i, &j); // s[0,W*H[ --> i[0,H[ j[0,W[
-
+			IndiceTools::toIJ(s, w, &i, &j);
 			this->workPixel(&ptrTabPixels[s], i, j, domaineMath);
-
 			s += NewtonMOO::NB_THREADS;
 		}
 	}
@@ -131,16 +131,15 @@ void NewtonMOO::forAutoOMP(uchar4* ptrTabPixels, int w, int h, const DomaineMath
 	for (int i = 0; i < h; i++)
 	{
 		for (int j = 0; j < w; j++) {
-			//int s = i * W + j;
-			int s=IndiceTools::toS(w, i, j);// i[0,H[ j[0,W[  --> s[0,W*H[
-
-			workPixel(&ptrTabPixels[s], i, j, domaineMath);
+			int s = IndiceTools::toS(w, i, j);
+			this->workPixel(&ptrTabPixels[s], i, j, domaineMath);
 		}
 	}
 }
 
 void NewtonMOO::workPixel(uchar4* ptrColorIJ, int i, int j, const DomaineMath& domaineMath) {
 	double x, y;
+
 	domaineMath.toXY(i, j, &x, &y );
-	// TODO
+	this->math->colorXY(ptrColorIJ, x, y, this->n);
 }
