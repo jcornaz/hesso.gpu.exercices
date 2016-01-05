@@ -12,14 +12,14 @@ class NewtonMath {
       this->epsilon = epsilon;
       this->colorFactor = colorFactor;
 
-      this->XA1 = 1.0f;
-      this->XA2 = 0.0f;
+      this->A1 = 1.0f;
+      this->A2 = 0.0f;
 
-      this->XB1 = -0.5f;
-      this->XB2 = sqrtf(3) / 2.0f;
+      this->B1 = -0.5f;
+      this->B2 = sqrtf(3) / 2.0f;
 
-      this->XC1 = this->XB1;
-      this->XC2 = - this->XB2;
+      this->C1 = this->B1;
+      this->C2 = - this->B2;
     }
 
     void colorXY(uchar4 *ptrColor, float x1, float x2, int n) {
@@ -30,9 +30,9 @@ class NewtonMath {
 
       int k = this->checkConvergency(&x1, &x2, n);
       if (k <= n) {
-        float distA = magnitude(x1 - this->XA1, x2 - this->XA2);
-        float distB = magnitude(x1 - this->XB1, x2 - this->XB2);
-        float distC = magnitude(x1 - this->XC1, x2 - this->XC2);
+        float distA = magnitude(x1 - this->A1, x2 - this->A2);
+        float distB = magnitude(x1 - this->B1, x2 - this->B2);
+        float distC = magnitude(x1 - this->C1, x2 - this->C2);
 
         float color = 255 - ((k * this->colorFactor) % 255);
 
@@ -49,40 +49,38 @@ class NewtonMath {
   private:
     int colorFactor;
     float epsilon;
-    float XA1, XA2, XB1, XB2, XC1, XC2;
+    float A1, A2, B1, B2, C1, C2;
 
-    int checkConvergency(float* x1, float* x2, int n) {
+    int checkConvergency(float* x, float* y, int n) {
+      // assert n >= 0
+
       int k = 0;
+      bool isConvergent = false;
 
-      while (k <= n) {
+      do {
 
-        float a = this->d1f1(*x1, *x2);
-        float b = this->d1f2(*x1, *x2);
-        float c = this->d2f1(*x1, *x2);
-        float d = this->d2f2(*x1, *x2);
+        float a = this->d1f1(*x, *y);
+        float b = this->d1f2(*x, *y);
+        float c = this->d2f1(*x, *y);
+        float d = this->d2f2(*x, *y);
 
-        float jacobianInverse = 1.0f / (a * d - b * c);
+        float sa = d / (a * d - b * c);
+        float sb = -c / (a * d - b * c);
+        float sc = -b / (a * d - b * c);
+        float sd = a / (a * d - b * c);
 
-        float sa = jacobianInverse * d;
-        float sb = -jacobianInverse * c;
-        float sc = -jacobianInverse * b;
-        float sd = jacobianInverse * a;
+        float nextX = *x - (sa * this->f1(*x, *y) + sc * this->f2(*x, *y));
+        float nextY = *y - (sb * this->f1(*x, *y) + sd * this->f2(*x, *y));
 
-        float nextX1 = *x1 - (sa * this->f1(*x1, *x2) + sc * this->f2(*x1, *x2));
-        float nextX2 = *x2 - (sb * this->f1(*x1, *x2) + sd * this->f2(*x1, *x2));
+        isConvergent = (magnitude(*x - this->A1, *y - this->A2) / magnitude(this->A1, this->A2)) < this->epsilon;
+        isConvergent = isConvergent || (magnitude(*x - this->B1, *y - this->B2) / magnitude(this->B1, this->B2)) < this->epsilon;
+        isConvergent = isConvergent || (magnitude(*x - this->C1, *y - this->C2) / magnitude(this->C1, this->C2)) < this->epsilon;
 
-        if (
-          (magnitude(*x1 - this->XA1, *x2 - this->XA2) / magnitude(this->XA1, this->XA2)) < this->epsilon ||
-          (magnitude(*x1 - this->XB1, *x2 - this->XB2) / magnitude(this->XB1, this->XB2)) < this->epsilon ||
-          (magnitude(*x1 - this->XC1, *x2 - this->XC2) / magnitude(this->XC1, this->XC2)) < this->epsilon
-        ) {
-          break;
-        } else {
-          *x1 = nextX1;
-          *x2 = nextX2;
-          k++;
-        }
-      }
+        *x = nextX;
+        *y = nextY;
+
+        k++;
+      } while (!isConvergent && k <= n);
 
       return k;
     }
