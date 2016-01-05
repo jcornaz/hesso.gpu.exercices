@@ -8,7 +8,7 @@
 class NewtonMath {
 
   public:
-    NewtonMath(float epsilon, int colorFactor) {
+    __device__ NewtonMath(float epsilon, int colorFactor) {
       this->epsilon = epsilon;
       this->colorFactor = colorFactor;
 
@@ -22,7 +22,7 @@ class NewtonMath {
       this->C2 = - this->B2;
     }
 
-    void colorXY(uchar4 *ptrColor, float x1, float x2, int n) {
+    __device__ void colorXY(uchar4 *ptrColor, float x1, float x2, int n) {
       ptrColor->x = 0;
       ptrColor->y = 0;
       ptrColor->z = 0;
@@ -51,7 +51,7 @@ class NewtonMath {
     float epsilon;
     float A1, A2, B1, B2, C1, C2;
 
-    int checkConvergency(float* x, float* y, int n) {
+    __device__ int checkConvergency(float* x, float* y, int n) {
       int k = 0;
       bool isConvergent = false;
 
@@ -83,31 +83,31 @@ class NewtonMath {
       return k;
     }
 
-    float magnitude(float x, float y) {
+    __device__ float magnitude(float x, float y) {
         return sqrtf(x * x + y * y);
     }
 
-    float f1(float x, float y) {
+    __device__ float f1(float x, float y) {
         return x * x * x - 3.0f * x * y * y - 1.0f;
     }
 
-    float f2(float x, float y) {
+    __device__ float f2(float x, float y) {
         return y * y * y - 3.0f * x * x * y;
     }
 
-    float d1f1(float x, float y) {
+    __device__ float d1f1(float x, float y) {
         return 3.0f * (x * x - y * y);
     }
 
-    float d2f1(float x, float y) {
+    __device__ float d2f1(float x, float y) {
         return -6.0f * x * y;
     }
 
-    float d1f2(float x, float y) {
+    __device__ float d1f2(float x, float y) {
         return d2f1(x, y);
     }
 
-    float d2f2(float x, float y) {
+    __device__ float d2f2(float x, float y) {
         return 3.0f * (y * y - x * x);
     }
 };
