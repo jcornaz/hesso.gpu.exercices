@@ -26,22 +26,18 @@ FractaleMOO::FractaleMOO(int w, int h, DomaineMath* domain, Fractale* algo, int 
 	Device::assertDim(dg, db);
 
 	HANDLE_ERROR(cudaMalloc(&this->ptrDevDomain, sizeof(DomaineMath)));
-
-	delete domain;
 }
 
 FractaleMOO::~FractaleMOO() {
+	HANDLE_ERROR(cudaFree(this->ptrDevDomain));
   delete this->algo;
 	delete this->ptrDomain;
-
-	HANDLE_ERROR(cudaFree(this->ptrDevDomain));
 }
 
 /**
  * Override
  */
 void FractaleMOO::process(uchar4* ptrDevPixels, int w, int h, const DomaineMath& domaineMath) {
-
 	HANDLE_ERROR(cudaMemcpy(this->ptrDevDomain, &domaineMath, sizeof(DomaineMath), cudaMemcpyHostToDevice));
 
 	if (Mandelbrot* mandelbrot = dynamic_cast<Mandelbrot*>(this->algo)) {
@@ -51,7 +47,6 @@ void FractaleMOO::process(uchar4* ptrDevPixels, int w, int h, const DomaineMath&
 	} else {
 		throw "Not supported algorithm";
 	}
-	// std::cout << cudaGetErrorString( cudaGetLastError() ) << std::endl;
 }
 
 /**
