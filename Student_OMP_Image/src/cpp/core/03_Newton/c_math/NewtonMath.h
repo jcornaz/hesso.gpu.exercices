@@ -52,12 +52,10 @@ class NewtonMath {
     float A1, A2, B1, B2, C1, C2;
 
     int checkConvergency(float* x, float* y, int n) {
-      // assert n >= 0
-
       int k = 0;
       bool isConvergent = false;
 
-      do {
+      while (!isConvergent && k <= n) {
 
         float a = this->d1f1(*x, *y);
         float b = this->d1f2(*x, *y);
@@ -80,7 +78,7 @@ class NewtonMath {
         *y = nextY;
 
         k++;
-      } while (!isConvergent && k <= n);
+      }
 
       return k;
     }
