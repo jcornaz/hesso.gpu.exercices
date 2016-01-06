@@ -95,5 +95,11 @@ int FractaleMOO::getH() {
  * Override
  */
 string FractaleMOO::getTitle() {
-	return "Fractale Mandelbrot";
+	if (Mandelbrot* mandelbrot = dynamic_cast<Mandelbrot*>(this->algo)) {
+		return "Fractale Mandelbrot";
+	} else if (Julia* julia = dynamic_cast<Julia*>(this->algo)) {
+		return "Fractale Julia";
+	} else {
+		return "Not supported algorithm";
+	}
 }
