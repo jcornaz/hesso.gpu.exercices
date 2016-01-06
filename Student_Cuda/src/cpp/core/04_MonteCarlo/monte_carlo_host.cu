@@ -6,14 +6,14 @@
 
 extern __global__ void computePIWithMonteCarlo(int* ptrDevResult, curandState* ptrDevTabGenerators, int nbGen);
 
-bool isMonteCarloOk();
-bool isMonteCarloMultiGPUOk();
+float computePIWithMonteCarloSingleGPU();
+float computePIWithMonteCarloMultiGPU();
 
-bool isMonteCarloOk() {
+float computePIWithMonteCarloSingleGPU() {
 
   const int NB_BLOCS = 128;
   const int NB_THREADS_BY_BLOCK = 512;
-  const int NB_GENERATIONS = 1000000;
+  const int NB_GENERATIONS = 1000000000;
 
   dim3 dg(NB_BLOCS, 1, 1);
   dim3 db(NB_THREADS_BY_BLOCK, 1, 1);
@@ -37,23 +37,21 @@ bool isMonteCarloOk() {
 
   float piValue = nbPointsOnIntegralArea * 4.0 / NB_GENERATIONS;
 
-  std::cout << "PI = " << piValue << " (with Monte Carlo)" << std::endl;
-
-  return abs(piValue - 3.141592653589793f) < 0.001;
+  return piValue;;
 }
 
-bool isMonteCarloMultiGPUOk() {
+float computePIWithMonteCarloMultiGPU() {
 
+  const int NB_DEVICES = Device::getDeviceCount();
   const int NB_BLOCS = 128;
   const int NB_THREADS_BY_BLOCK = 512;
-  const int NB_GENERATIONS_BY_DEVICE = 1000000;
+  const int NB_GENERATIONS_BY_DEVICE = 1000000000 / NB_DEVICES;
 
-  int nbDevice = Device::getDeviceCount();
 
-  int deviceSums[nbDevice];
+  int deviceSums[NB_DEVICES];
 
   #pragma omp parallel for
-  for (int deviceID = 0 ; deviceID < nbDevice ; deviceID++) {
+  for (int deviceID = 0 ; deviceID < NB_DEVICES ; deviceID++) {
     dim3 dg(NB_BLOCS, 1, 1);
     dim3 db(NB_THREADS_BY_BLOCK, 1, 1);
 
@@ -75,13 +73,9 @@ bool isMonteCarloMultiGPUOk() {
   }
 
   int finalSum = 0;
-  for (int i = 0 ; i < nbDevice ; i++) {
+  for (int i = 0 ; i < NB_DEVICES ; i++) {
     finalSum += deviceSums[0];
   }
 
-  float piValue = finalSum * 4.0 / (nbDevice * NB_GENERATIONS_BY_DEVICE);
-
-  std::cout << "PI = " << piValue << " (with Monte Carlo multi GPU)" << std::endl;
-
-  return abs(piValue - 3.141592653589793f) < 0.001;
+  return finalSum * 4.0 / (NB_DEVICES * NB_GENERATIONS_BY_DEVICE);
 }
