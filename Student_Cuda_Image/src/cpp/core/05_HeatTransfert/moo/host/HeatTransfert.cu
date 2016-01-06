@@ -22,8 +22,8 @@ HeatTransfert::HeatTransfert(unsigned int w, unsigned int h, float* ptrImageInit
   this->propSpeed = propSpeed;
 
   // Cuda grid dimensions
-  this->dg = dim3(8, 8, 1);
-  this->db = dim3(16, 16, 1);
+  this->dg = dim3(64, 64, 1);
+  this->db = dim3(32, 32, 1);
   Device::assertDim(dg, db);
 
   size_t arraySize = sizeof(float) * wh;
