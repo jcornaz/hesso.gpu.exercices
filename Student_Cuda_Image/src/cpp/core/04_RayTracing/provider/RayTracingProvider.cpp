@@ -2,8 +2,8 @@
 
 RayTracing* RayTracingProvider::createMOO() {
 
-  int dw = 1024;
-  int dh = 1024;
+  int dw = 512;
+  int dh = 512;
 
   float dt = 0.1;
   int padding = 10;

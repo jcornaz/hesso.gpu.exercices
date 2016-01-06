@@ -13,7 +13,7 @@ NewtonMOO::NewtonMOO(int w, int h, DomaineMath* ptrDomain, NewtonMath* ptrMath) 
 
   this->w = w;
   this->h = h;
-	this->n = 0;
+	this->n = 10;
 
 	this->dg = dim3(64, 64, 1);
 	this->db = dim3(32, 32, 1);

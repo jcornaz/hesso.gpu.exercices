@@ -40,9 +40,9 @@ Rippling::~Rippling() {
  * Override
  */
 void Rippling::process(uchar4* ptrDevPixels, int w, int h) {
-  ripplingOneToOne<<<dg,db>>>(ptrDevPixels, w, h, this->t);
+  // ripplingOneToOne<<<dg,db>>>(ptrDevPixels, w, h, this->t);
   // ripplingOneDimension<<<dg,db>>>(ptrDevPixels, w, h, this->t);
-  // ripplingTwoDimensions<<<dg,db>>>(ptrDevPixels, w, h, this->t);
+  ripplingTwoDimensions<<<dg,db>>>(ptrDevPixels, w, h, this->t);
 }
 
 

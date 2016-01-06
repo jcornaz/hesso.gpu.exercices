@@ -8,8 +8,8 @@ Image* HeatTransfertProvider::createGL() {
 }
 
 Animable_I* HeatTransfertProvider::createMOO() {
-  unsigned int w = 800;
-  unsigned int h = 800;
+  unsigned int w = 512;
+  unsigned int h = 512;
   unsigned int WH = w*h;
 
   float imageInit[WH];
@@ -21,15 +21,15 @@ Animable_I* HeatTransfertProvider::createMOO() {
     int i, j;
     IndiceTools::toIJ(s, w, &i, &j);
 
-    if (i >= 300 && i < 500 && j >= 300 && j < 500) {
+    if (i >= 150 && i < 250 && j >= 150 && j < 250) {
       imageHeater[s] = 1.0;
     } else if (
-      (i >= 179 && i < 195 && j >= 179 && j < 195) ||
-      (i >= 179 && i < 195 && j >= 605 && j < 621) ||
-      (i >= 605 && i < 621 && j >= 179 && j < 195) ||
-      (i >= 605 && i < 621 && j >= 605 && j < 621) ||
-      (i >= 605 && i < 621 && j >= 605 && j < 621) ||
-      (i >= 605 && i < 621 && j >= 605 && j < 621)
+      (i >= 90 && i < 98 && j >= 90 && j < 98) ||
+      (i >= 90 && i < 98 && j >= 302 && j < 310) ||
+      (i >= 302 && i < 310 && j >= 90 && j < 98) ||
+      (i >= 302 && i < 310 && j >= 302 && j < 310) ||
+      (i >= 302 && i < 310 && j >= 302 && j < 310) ||
+      (i >= 302 && i < 310 && j >= 302 && j < 310)
     ) {
       imageHeater[s] = 0.2;
     } else {
