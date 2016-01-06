@@ -14,7 +14,7 @@ using std::endl;
 
 extern bool useHello();
 extern bool useAddVecteur();
-extern bool useSaucisson();
+extern bool useSlicing();
 extern bool useMonteCarlo();
 extern bool useMonteCarloMultiGPU();
 
@@ -43,7 +43,7 @@ int mainCore()
     bool isOk = true;
     // isOk &= useHello();
     // isOk &= useAddVecteur();
-    isOk &= useSaucisson();
+    isOk &= useSlicing();
     isOk &= useMonteCarlo();
     isOk &= useMonteCarloMultiGPU();
 

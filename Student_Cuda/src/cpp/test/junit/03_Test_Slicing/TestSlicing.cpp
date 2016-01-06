@@ -1,9 +1,7 @@
-#include "../02_Test_Vector/TestVector.h"
-
 #include "Device.h"
 #include "TestSlicing.h"
 
-extern bool useSaucisson();
+extern bool useSlicing();
 
 TestSlicing::TestSlicing(int deviceId) {
   this->deviceId=deviceId;
@@ -12,5 +10,5 @@ TestSlicing::TestSlicing(int deviceId) {
 }
 
 void TestSlicing::testPI() {
-  TEST_ASSERT(useSaucisson() == true);
+  TEST_ASSERT(useSlicing());
 }
