@@ -7,126 +7,76 @@
 using std::cout;
 using std::endl;
 
-/*----------------------------------------------------------------------*\
- |*			Declaration 					*|
- \*---------------------------------------------------------------------*/
+extern __global__ void ripplingOneToOne(uchar4* ptrDevPixels, int w, int h, float t);
+extern __global__ void ripplingOneDimension(uchar4* ptrDevPixels, int w, int h, float t);
+extern __global__ void ripplingTwoDimensions(uchar4* ptrDevPixels, int w, int h, float t);
 
-/*--------------------------------------*\
- |*		Imported	 	*|
- \*-------------------------------------*/
+Rippling::Rippling(int w, int h, float dt) {
+  assert(w == h);
 
-extern __global__ void rippling(uchar4* ptrDevPixels, int w, int h, float t);
+  // Inputs
+  this->w = w;
+  this->h = h;
+  this->dt = dt;
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
+  // Tools
 
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
+  this->dg = dim3(64, 64, 1);
+  this->db = dim3(16, 16, 1);
+  this->t = 0;
 
-/*----------------------------------------------------------------------*\
- |*			Implementation 					*|
- \*---------------------------------------------------------------------*/
+  // Outputs
+  this->title = "Rippling";
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
+  //print(dg, db);
+  Device::assertDim(dg, db);
+}
 
-/*-------------------------*\
- |*	Constructeur	    *|
- \*-------------------------*/
+Rippling::~Rippling() {
+  // rien
+}
 
-Rippling::Rippling(int w, int h, float dt)
-    {
-    assert(w == h);
-
-    // Inputs
-    this->w = w;
-    this->h = h;
-    this->dt = dt;
-
-    // Tools
-    this->dg = dim3(8, 8, 1);
-    this->db = dim3(16, 16, 1);
-    this->t = 0;
-
-    // Outputs
-    this->title = "Rippling_Cuda";
-
-    //print(dg, db);
-    Device::assertDim(dg, db);
-    }
-
-Rippling::~Rippling()
-    {
-    // rien
-    }
-
-/*-------------------------*\
- |*	Methode		    *|
- \*-------------------------*/
+/**
+ * Override
+ */
+void Rippling::process(uchar4* ptrDevPixels, int w, int h) {
+  // ripplingOneToOne<<<dg,db>>>(ptrDevPixels, w, h, this->t);
+  // ripplingOneDimension<<<dg,db>>>(ptrDevPixels, w, h, this->t);
+  ripplingTwoDimensions<<<dg,db>>>(ptrDevPixels, w, h, this->t);
+}
 
 
 /**
  * Override
  */
-void Rippling::process(uchar4* ptrDevPixels, int w, int h)
-    {
-    rippling<<<dg,db>>>(ptrDevPixels, w, h, this->t);
-    }
-
+void Rippling::animationStep() {
+  this->t += this->dt;
+}
 
 /**
  * Override
  */
-void Rippling::animationStep()
-    {
-    this->t += this->dt;
-    }
-
-/*--------------*\
- |*	get	 *|
- \*--------------*/
+float Rippling::getAnimationPara(void) {
+  return t;
+}
 
 /**
  * Override
  */
-float Rippling::getAnimationPara(void)
-    {
-    return t;
-    }
+int Rippling::getW(void) {
+  return w;
+}
 
 /**
  * Override
  */
-int Rippling::getW(void)
-    {
-    return w;
-    }
+int Rippling::getH(void) {
+  return  h;
+}
 
 /**
  * Override
  */
-int Rippling::getH(void)
-    {
-    return  h;
-    }
-
-/**
- * Override
- */
-string Rippling::getTitle(void)
-    {
-    return title;
-    }
-
-
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
-
-/*----------------------------------------------------------------------*\
- |*			End	 					*|
- \*---------------------------------------------------------------------*/
-
+string Rippling::getTitle(void) {
+  return title;
+}

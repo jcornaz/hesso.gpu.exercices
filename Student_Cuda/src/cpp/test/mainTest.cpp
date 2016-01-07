@@ -9,7 +9,8 @@
 
 #include "junit/02_Test_Vector/TestVector.h"
 #include "TestHello.h"
-
+#include "TestSlicing.h"
+#include "TestMonteCarlo.h"
 
 using std::string;
 using std::cout;
@@ -64,16 +65,17 @@ bool testALL()
 
     Suite testSuite;
 
-    testSuite.add(std::auto_ptr < Suite > (new TestHello(deviceId)));
-    testSuite.add(std::auto_ptr < Suite > (new TestVector(deviceId)));
+    // testSuite.add(std::auto_ptr < Suite > (new TestHello(deviceId)));
+    // testSuite.add(std::auto_ptr < Suite > (new TestVector(deviceId)));
+    testSuite.add(std::auto_ptr < Suite > (new TestSlicing(deviceId)));
+    testSuite.add(std::auto_ptr < Suite > (new TestMonteCarlo(deviceId)));
 
     string titre = "deviceId_" + StringTools::toString(deviceId);
 
-    return runTestHtml(titre, testSuite); // Attention: html create in working directory!!
-    //return runTestConsole(titre, testSuite);
+    // return runTestHtml(titre, testSuite); // Attention: html create in working directory!!
+    return runTestConsole(titre, testSuite);
     }
 
 /*----------------------------------------------------------------------*\
  |*			End	 					*|
  \*---------------------------------------------------------------------*/
-

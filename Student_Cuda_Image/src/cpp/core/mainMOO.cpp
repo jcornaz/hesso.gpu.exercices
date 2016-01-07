@@ -8,78 +8,49 @@
 #include "AnimateurFonctionel.h"
 
 #include "RipplingProvider.h"
+#include "MandelbrotProvider.h"
+#include "JuliaProvider.h"
+#include "NewtonProvider.h"
+#include "RayTracingProvider.h"
+#include "HeatTransfertProvider.h"
 
 using std::cout;
 using std::endl;
 using std::string;
 
-/*----------------------------------------------------------------------*\
- |*			Declaration 					*|
- \*---------------------------------------------------------------------*/
-
-/*--------------------------------------*\
- |*		Imported	 	*|
- \*-------------------------------------*/
-
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
-
 int mainFreeGL(Option& option);
 
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
+static void animeAndDelete(Animable_I* ptrAnimable, int nbIteration);
+static void animeAndDelete(AnimableFonctionel_I* ptrAnimable, int nbIteration);
 
-static void animer(Animable_I* ptrAnimable, int nbIteration);
-static void animer(AnimableFonctionel_I* ptrAnimable, int nbIteration);
+int mainFreeGL(Option& option) {
 
-/*----------------------------------------------------------------------*\
- |*			Implementation 					*|
- \*---------------------------------------------------------------------*/
+  cout << "\n[FreeGL] mode" << endl;
 
-/*--------------------------------------*\
- |*		Public			*|
- \*-------------------------------------*/
+  const int NB_ITERATION = 1000;
 
-int mainFreeGL(Option& option)
-    {
-    cout << "\n[FreeGL] mode" << endl;
+  animeAndDelete(RipplingProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(MandelbrotProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(JuliaProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(NewtonProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(RayTracingProvider::createMOO(), NB_ITERATION);
+  animeAndDelete(HeatTransfertProvider::createMOO(), NB_ITERATION);
 
-    const int NB_ITERATION = 1000;
+  cout << "\n[FreeGL] end" << endl;
 
-    // Rippling
-	{
-	Animable_I* ptrRippling = RipplingProvider::createMOO();
-	animer(ptrRippling, NB_ITERATION);
-	}
+  return EXIT_SUCCESS;
+}
 
-    cout << "\n[FreeGL] end" << endl;
+void animeAndDelete(Animable_I* ptrAnimable, int nbIteration) {
+  Animateur animateur(ptrAnimable, nbIteration);
+  animateur.run();
 
-    return EXIT_SUCCESS;
-    }
+  delete ptrAnimable;
+}
 
-/*--------------------------------------*\
- |*		Private			*|
- \*-------------------------------------*/
+void animeAndDelete(AnimableFonctionel_I* ptrAnimable, int nbIteration) {
+  AnimateurFonctionel animateur(ptrAnimable, nbIteration);
+  animateur.run();
 
-void animer(Animable_I* ptrAnimable, int nbIteration)
-    {
-    Animateur animateur(ptrAnimable, nbIteration);
-    animateur.run();
-
-    delete ptrAnimable;
-    }
-
-void animer(AnimableFonctionel_I* ptrAnimable, int nbIteration)
-    {
-    AnimateurFonctionel animateur(ptrAnimable, nbIteration);
-    animateur.run();
-
-    delete ptrAnimable;
-    }
-
-/*----------------------------------------------------------------------*\
- |*			End	 					*|
- \*---------------------------------------------------------------------*/
-
+  delete ptrAnimable;
+}

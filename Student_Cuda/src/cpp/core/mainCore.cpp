@@ -1,7 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
 
-
 using std::cout;
 using std::endl;
 
@@ -13,8 +12,11 @@ using std::endl;
  |*		Imported	 	*|
  \*-------------------------------------*/
 
-extern bool useHello(void);
-extern bool useAddVecteur(void);
+extern bool useHello();
+extern bool useAddVecteur();
+extern bool useSlicing();
+extern bool useMonteCarlo();
+extern bool useMonteCarloMultiGPU();
 
 /*--------------------------------------*\
  |*		Public			*|
@@ -39,8 +41,11 @@ int mainCore();
 int mainCore()
     {
     bool isOk = true;
-    isOk &= useHello();
-    isOk &=useAddVecteur();
+    // isOk &= useHello();
+    // isOk &= useAddVecteur();
+    isOk &= useSlicing();
+    isOk &= useMonteCarlo();
+    isOk &= useMonteCarloMultiGPU();
 
     cout << "\nisOK = " << isOk << endl;
     cout << "\nEnd : mainCore" << endl;
@@ -57,4 +62,3 @@ int mainCore()
 /*----------------------------------------------------------------------*\
  |*			End	 					*|
  \*---------------------------------------------------------------------*/
-

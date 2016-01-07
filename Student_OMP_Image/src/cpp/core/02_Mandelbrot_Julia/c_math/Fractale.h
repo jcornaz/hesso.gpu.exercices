@@ -1,19 +1,37 @@
 #ifndef FRACTALE_H_
 #define FRACTALE_H_
 
-#include "CalibreurF.h"
+#include <cmath>
+
 #include "ColorTools.h"
+#include "cudaType.h"
 
-class Fractale
-    {
-    public:
-	virtual ~Fractale();
+class Fractale {
+  public:
 
-	void colorXY(uchar4* ptrColor, float x, float y, int n);
+  	void colorXY(uchar4* ptrColor, double x, double y, int n) const {
+      int nmax = this->checkSuit(x, y, n);
 
-	virtual int checkSuit(float z, float y, int n)=0;
-	virtual bool isDivergent(float z)=0;
-    };
+      float3 hsb;
 
+      if (nmax > n) {
+        hsb.x = 0;
+        hsb.y = 0;
+        hsb.z = 0;
+      } else {
+        hsb.x = ((double) nmax) / ((double) n);
+        hsb.y = 1;
+        hsb.z = 1;
+      }
+
+      ColorTools::HSB_TO_RVB(hsb, ptrColor);
+
+      ptrColor->w = 255;
+    }
+
+  	virtual int checkSuit(double x, double y, int n) const = 0;
+
+    virtual string getName() const = 0;
+};
 
 #endif
