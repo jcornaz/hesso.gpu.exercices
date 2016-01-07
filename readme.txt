@@ -20,6 +20,9 @@
 
 ### Image
 * Rippling
+  * With a one dimensional CUDA grid
+  * With a two dimensional CUDA grid
+  * With the one-to-one pattern
 * Mandelbrot and Julia Fractals
 * Mandelbrot multi-GPU (not working)
 * Newton Fractal
