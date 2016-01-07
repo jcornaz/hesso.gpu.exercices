@@ -55,8 +55,8 @@ bool testALL(void)
     {
     Test::Suite testSuite;
 
-    testSuite.add(std::auto_ptr < Test::Suite > (new TestHello()));
-    testSuite.add(std::auto_ptr < Test::Suite > (new TestPi()));
+    // testSuite.add(std::auto_ptr < Test::Suite > (new TestHello()));
+    // testSuite.add(std::auto_ptr < Test::Suite > (new TestPi()));
 
     return runTestHtml("TestALL_HTML", testSuite);
     //return runTestConsole("TestALL_Console", testSuite);
@@ -65,4 +65,3 @@ bool testALL(void)
 /*----------------------------------------------------------------------*\
  |*			End	 					*|
  \*---------------------------------------------------------------------*/
-
