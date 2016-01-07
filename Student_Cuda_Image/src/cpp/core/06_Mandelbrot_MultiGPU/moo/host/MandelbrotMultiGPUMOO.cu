@@ -60,24 +60,22 @@ MandelbrotMultiGPUMOO::~MandelbrotMultiGPUMOO() {
 void MandelbrotMultiGPUMOO::process(uchar4* ptrDevPixels, int w, int h, const DomaineMath& domaineMath) {
 	const int hPix = h / this->nbDevices;
 	const float hDom = (domaineMath.y1 - domaineMath.y0) / this->nbDevices;
+
+	std::cout << hDom << std::endl;
+
 	const int tabSize = hPix * w;
 
 	#pragma omp parallel for
 	for (int i = 0 ; i < this->nbDevices ; i++) {
 		HANDLE_ERROR(cudaSetDevice(i));
 
-		DomaineMath deviceDomain;
+		DomaineMath deviceDomain(domaineMath.x0, deviceDomain.y0 + hDom, domaineMath.y0 + i * hDom, domaineMath.x1);
 
-		deviceDomain.x0 = domaineMath.x0;
-		deviceDomain.x1 = domaineMath.x1;
-		deviceDomain.y0 = domaineMath.y0 + i * hDom;
-		deviceDomain.y1 = deviceDomain.y0 + hDom;
+		HANDLE_ERROR(cudaMemcpy(this->ptrDevDomains[i], &deviceDomain, sizeof(DomaineMath), cudaMemcpyHostToDevice));
 
 		uchar4* ptrDevPixelsLocal;
-
 		HANDLE_ERROR(cudaMalloc(&ptrDevPixelsLocal, sizeof(uchar4) * tabSize));
 		HANDLE_ERROR(cudaMemcpy(ptrDevPixelsLocal, &ptrDevPixels[i * tabSize], sizeof(uchar4) * tabSize, cudaMemcpyDeviceToDevice));
-		HANDLE_ERROR(cudaMemcpy(this->ptrDevDomains[i], &deviceDomain, sizeof(DomaineMath), cudaMemcpyHostToDevice));
 
 		processMandelbrot<<<this->dg[i],this->db[i]>>>(ptrDevPixelsLocal, w, hPix, this->n, *this->ptrDevDomains[i] );
 
