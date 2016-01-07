@@ -25,7 +25,7 @@ float computePIWithMonteCarloSingleGPU() {
   curandState* ptrDevTabGenerators;
 
   HANDLE_ERROR(cudaMalloc(&ptrDevResult, sizeof(int)));
-  HANDLE_ERROR(cudaMalloc(&ptrDevTabGenerators, NB_BLOCS * NB_THREADS_BY_BLOCK + sizeof(curandState)));
+  HANDLE_ERROR(cudaMalloc(&ptrDevTabGenerators, NB_BLOCS * NB_THREADS_BY_BLOCK * sizeof(curandState)));
   HANDLE_ERROR(cudaMemset(ptrDevResult, 0, sizeof(int)));
 
   setup_kernel_rand<<<dg,db>>>(ptrDevTabGenerators, 0);
@@ -52,6 +52,8 @@ float computePIWithMonteCarloMultiGPU() {
 
   #pragma omp parallel for
   for (int deviceID = 0 ; deviceID < NB_DEVICES ; deviceID++) {
+    HANDLE_ERROR(cudaSetDevice(deviceID));
+
     dim3 dg(NB_BLOCS, 1, 1);
     dim3 db(NB_THREADS_BY_BLOCK, 1, 1);
 
@@ -61,7 +63,7 @@ float computePIWithMonteCarloMultiGPU() {
     curandState* ptrDevTabGenerators;
 
     HANDLE_ERROR(cudaMalloc(&ptrDevResult, sizeof(int)));
-    HANDLE_ERROR(cudaMalloc(&ptrDevTabGenerators, NB_BLOCS * NB_THREADS_BY_BLOCK + sizeof(curandState)));
+    HANDLE_ERROR(cudaMalloc(&ptrDevTabGenerators, NB_BLOCS * NB_THREADS_BY_BLOCK * sizeof(curandState)));
     HANDLE_ERROR(cudaMemset(ptrDevResult, 0, sizeof(int)));
 
     setup_kernel_rand<<<dg,db>>>(ptrDevTabGenerators, deviceID);
