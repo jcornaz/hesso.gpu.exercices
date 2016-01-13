@@ -31,10 +31,13 @@ class ConvolutionMOO: public Animable_I {
     int w;
     int h;
     int t;
+    float* ptrDevKernel;
+    ConvolutionKernel& kernel;
 
     // Tools
   	dim3 dg;
   	dim3 db;
+
 };
 
 #endif

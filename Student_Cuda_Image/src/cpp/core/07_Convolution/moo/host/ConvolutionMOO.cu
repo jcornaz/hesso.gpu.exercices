@@ -1,13 +1,16 @@
 #include "ConvolutionMOO.h"
 
-ConvolutionMOO::ConvolutionMOO(int w, int h, ConvolutionKernel& kernel) {
+ConvolutionMOO::ConvolutionMOO(int w, int h, ConvolutionKernel& kernel_) : kernel(kernel_) {
   this->w = w;
   this->h = h;
   this->t = 0;
+
+  HANDLE_ERROR(cudaMalloc(&this->ptrDevKernel, sizeof(float) * kernel.getSize()));
+  HANDLE_ERROR(cudaMemcpy(this->ptrDevKernel, kernel.getWeights(), sizeof(float) * kernel.getSize(), cudaMemcpyHostToDevice));
 }
 
 ConvolutionMOO::~ConvolutionMOO() {
-  // Nothing to do
+  HANDLE_ERROR(cudaFree(this->ptrDevKernel));
 }
 
 /**

@@ -1,7 +1,13 @@
 #include "ConvolutionProvider.h"
 
 ConvolutionMOO* ConvolutionProvider::createMOO() {
-  ConvolutionKernel kernel;
+  float weights[100];
+
+  for (int i = 0 ; i < 100 ; i++) {
+    weights[i] = 0.1f;
+  }
+
+  ConvolutionKernel kernel(10, 10, weights);
 
   return new ConvolutionMOO(1920, 1080, kernel);
 }
