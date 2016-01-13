@@ -11,18 +11,18 @@ class ConvolutionKernel {
       this->weights = weights;
     }
 
-    int getW() {
+    int getWidth() {
       return this->w;
     }
 
-    int getH() {
+    int getHeight() {
       return this->h;
     }
 
     int getSize() {
       return this->w * this->h;
     }
-    
+
     float* getWeights() {
       return this->weights;
     }
