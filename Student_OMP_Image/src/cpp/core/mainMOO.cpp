@@ -20,7 +20,7 @@ static void animeAndDestroy(AnimableFonctionel_I* ptrAnimable, int nbIteration);
 int mainMOO(Settings& settings) {
   cout << "\n[FreeGL] mode" << endl;
 
-  const int NB_ITERATION = 1000;
+  const int NB_ITERATION = 100;
 
   animeAndDestroy(ConvolutionProvider::createMOO(), NB_ITERATION);
 

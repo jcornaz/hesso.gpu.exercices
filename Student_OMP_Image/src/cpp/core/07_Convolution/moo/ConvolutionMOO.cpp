@@ -73,6 +73,8 @@ int ConvolutionMOO::getH() {
 }
 
 void ConvolutionMOO::convolution(uchar4* ptrPixels, int imageWidth, int imageHeight, float* ptrKernel, int kernelWidth, int kernelHeight) {
+  const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+
   const int SIZE_IMAGE = imageWidth * imageHeight;
   const int SIZE_KERNEL = kernelWidth * kernelHeight;
 
@@ -83,36 +85,42 @@ void ConvolutionMOO::convolution(uchar4* ptrPixels, int imageWidth, int imageHei
 
   uchar4 ptrResult[SIZE_IMAGE];
 
-  int s = 0;
-  int i, j, si, sk, ik, jk;
-  float sumX, sumY, sumZ;
-  while (s < SIZE_IMAGE) {
-    IndiceTools::toIJ(s, imageWidth, &i, &j);
+  #pragma omp parallel
+  {
+    const int TID = OmpTools::getTid();
 
-    if (i - DELTA_UP >= 0 && i + DELTA_DOWN < imageHeight && j - DELTA_LEFT >= 0 && j + DELTA_RIGHT < imageWidth) {
-      sumX = 0.0;
-      sumY = 0.0;
-      sumZ = 0.0;
+    int s = TID;
+    int i, j, si, sk, ik, jk;
+    float sumX, sumY, sumZ;
+    while (s < SIZE_IMAGE) {
+      IndiceTools::toIJ(s, imageWidth, &i, &j);
 
-      sk = 0;
-      while (sk < SIZE_KERNEL) {
-        IndiceTools::toIJ(sk, kernelWidth, &ik, &jk);
-        si = IndiceTools::toS(imageWidth, i - DELTA_UP + ik, j - DELTA_LEFT + jk);
-        sumX += ptrPixels[si].x * ptrKernel[sk];
-        sumY += ptrPixels[si].y * ptrKernel[sk];
-        sumZ += ptrPixels[si].z * ptrKernel[sk];
-        sk++;
+      if (i - DELTA_UP >= 0 && i + DELTA_DOWN < imageHeight && j - DELTA_LEFT >= 0 && j + DELTA_RIGHT < imageWidth) {
+        sumX = 0.0;
+        sumY = 0.0;
+        sumZ = 0.0;
+
+        sk = 0;
+        while (sk < SIZE_KERNEL) {
+          IndiceTools::toIJ(sk, kernelWidth, &ik, &jk);
+          si = IndiceTools::toS(imageWidth, i - DELTA_UP + ik, j - DELTA_LEFT + jk);
+          sumX += ptrPixels[si].x * ptrKernel[sk];
+          sumY += ptrPixels[si].y * ptrKernel[sk];
+          sumZ += ptrPixels[si].z * ptrKernel[sk];
+          sk++;
+        }
+
+        ptrResult[s].x = (int) sumX;
+        ptrResult[s].y = (int) sumY;
+        ptrResult[s].z = (int) sumZ;
       }
 
-      ptrResult[s].x = (int) sumX;
-      ptrResult[s].y = (int) sumY;
-      ptrResult[s].z = (int) sumZ;
+      ptrPixels[s].w = 255;
+      s += NB_THREADS;
     }
-
-    ptrPixels[s].w = 255;
-    s++;
   }
 
+  #pragma omp prallel for
   for (int i = 0 ; i < SIZE_IMAGE ; i++) {
     ptrPixels[i].x = ptrResult[i].x;
     ptrPixels[i].y = ptrResult[i].y;
@@ -121,16 +129,22 @@ void ConvolutionMOO::convolution(uchar4* ptrPixels, int imageWidth, int imageHei
 }
 
 void ConvolutionMOO::convertInBlackAndWhite(uchar4* ptrPixels, int imageWidth, int imageHeight) {
-  const int N = imageWidth * imageHeight;
+  const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
 
-  int s = 0;
-  while (s < N) {
-    char grayLevel = (ptrPixels[s].x + ptrPixels[s].y + ptrPixels[s].z) / 3;
+  #pragma omp parallel
+  {
+    const int N = imageWidth * imageHeight;
+    const int TID = OmpTools::getTid();
 
-    ptrPixels[s].x = grayLevel;
-    ptrPixels[s].y = grayLevel;
-    ptrPixels[s].z = grayLevel;
+    int s = TID;
+    while (s < N) {
+      char grayLevel = (ptrPixels[s].x + ptrPixels[s].y + ptrPixels[s].z) / 3;
 
-    s++;
+      ptrPixels[s].x = grayLevel;
+      ptrPixels[s].y = grayLevel;
+      ptrPixels[s].z = grayLevel;
+
+      s += NB_THREADS;
+    }
   }
 }
