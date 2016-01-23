@@ -9,7 +9,7 @@ ConvolutionMOO* ConvolutionProvider::createMOO() {
 
   ConvolutionKernel kernel(10, 10, weights);
 
-  return new ConvolutionMOO(1920, 1080, kernel);
+  return new ConvolutionMOO(kernel, "/media/Data/Video/autoroute.mp4");
 }
 
 Image* ConvolutionProvider::createGL() {

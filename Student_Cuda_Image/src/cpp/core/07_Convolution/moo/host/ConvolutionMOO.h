@@ -3,11 +3,12 @@
 
 #include "Animable_I.h"
 #include "ConvolutionKernel.h"
+#include "CVCaptureVideo.h"
 
 class ConvolutionMOO: public Animable_I {
 
   public:
-    ConvolutionMOO(int w, int h, ConvolutionKernel& kernel);
+    ConvolutionMOO(ConvolutionKernel& kernel, string videoPath);
     ~ConvolutionMOO();
 
     /**
@@ -19,7 +20,6 @@ class ConvolutionMOO: public Animable_I {
     * Call periodicly by the api
     */
     virtual void animationStep();
-
     virtual float getAnimationPara();
     virtual string getTitle();
     virtual int getW();
@@ -28,16 +28,14 @@ class ConvolutionMOO: public Animable_I {
   private:
 
     // Inputs
-    int w;
-    int h;
     int t;
     float* ptrDevKernel;
     ConvolutionKernel& kernel;
+    CVCaptureVideo* videoCapter;
 
     // Tools
   	dim3 dg;
   	dim3 db;
-
 };
 
 #endif
