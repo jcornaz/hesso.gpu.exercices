@@ -24,16 +24,16 @@ class ConvolutionMOO: public Animable_I {
     virtual int getW();
     virtual int getH();
 
+    virtual void setParallelPatern(ParallelPatern parallelPatern);
+
   private:
+    void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
+    void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
 
     // Inputs
     int t, kernelWidth, kernelHeight;
-    float* ptrDevKernel;
+    float* ptrKernel;
     CVCaptureVideo* videoCapter;
-
-    // Tools
-  	dim3 dg;
-  	dim3 db;
 };
 
 #endif
