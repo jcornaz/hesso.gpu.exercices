@@ -7,13 +7,14 @@
 #include "Viewer.h"
 #include "ViewerZoomable.h"
 
-#include "RipplingProvider.h"
-#include "MandelbrotProvider.h"
-#include "JuliaProvider.h"
-#include "NewtonProvider.h"
-#include "RayTracingProvider.h"
-#include "HeatTransfertProvider.h"
-#include "MandelbrotMultiGPUProvider.h"
+// #include "RipplingProvider.h"
+// #include "MandelbrotProvider.h"
+// #include "JuliaProvider.h"
+// #include "NewtonProvider.h"
+// #include "RayTracingProvider.h"
+// #include "HeatTransfertProvider.h"
+// #include "MandelbrotMultiGPUProvider.h"
+#include "ConvolutionProvider.h"
 
 using std::cout;
 using std::endl;
@@ -26,13 +27,14 @@ int mainGL(Option& option) {
 
 	GLUTImageViewers::init(option.getArgc(), option.getArgv());
 
-	Viewer<RipplingProvider> rippling(0, 0);
-	ViewerZoomable<MandelbrotProvider> mandelbrot(512, 0);
-	ViewerZoomable<JuliaProvider> julia(1024, 0);
-	ViewerZoomable<NewtonProvider> newton(0, 512);
-	Viewer<RayTracingProvider> raytracing(512, 512);
-	Viewer<HeatTransfertProvider> heatTransfer(1024, 512);
+	// Viewer<RipplingProvider> rippling(0, 0);
+	// ViewerZoomable<MandelbrotProvider> mandelbrot(512, 0);
+	// ViewerZoomable<JuliaProvider> julia(1024, 0);
+	// ViewerZoomable<NewtonProvider> newton(0, 512);
+	// Viewer<RayTracingProvider> raytracing(512, 512);
+	// Viewer<HeatTransfertProvider> heatTransfer(1024, 512);
 	// ViewerZoomable<MandelbrotMultiGPUProvider> mandelbrotMultiGPU(0, 0);
+	Viewer<ConvolutionProvider> raytracing(0, 0);
 
 	GLUTImageViewers::runALL(); // Bloquant, Tant qu'une fenetre est ouverte
 
