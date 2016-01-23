@@ -1,4 +1,11 @@
-# List of implementations
+# Work deepening
+
+## Mesured speeds
+ * CPU
+  * Sequential : 1.6356 - 1.6356 fps
+
+
+# Exercices
 
 ## OMP
 ### Not image
