@@ -81,6 +81,8 @@ void ConvolutionMOO::convolution(uchar4* ptrPixels, int imageWidth, int imageHei
   const int DELTA_DOWN = kernelHeight / 2;
   const int DELTA_UP = kernelHeight - DELTA_DOWN;
 
+  uchar4 ptrResult[SIZE_IMAGE];
+
   int s = 0;
   int i, j, si, sk, ik, jk;
   float sumX, sumY, sumZ;
@@ -102,13 +104,19 @@ void ConvolutionMOO::convolution(uchar4* ptrPixels, int imageWidth, int imageHei
         sk++;
       }
 
-      ptrPixels[s].x = (int) sumX;
-      ptrPixels[s].y = (int) sumY;
-      ptrPixels[s].z = (int) sumZ;
+      ptrResult[s].x = (int) sumX;
+      ptrResult[s].y = (int) sumY;
+      ptrResult[s].z = (int) sumZ;
     }
 
     ptrPixels[s].w = 255;
     s++;
+  }
+
+  for (int i = 0 ; i < SIZE_IMAGE ; i++) {
+    ptrPixels[i].x = ptrResult[i].x;
+    ptrPixels[i].y = ptrResult[i].y;
+    ptrPixels[i].z = ptrResult[i].z;
   }
 }
 
