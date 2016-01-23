@@ -41,7 +41,6 @@ __global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeigh
       ptrDevPixels[s].x = (int) sumX;
       ptrDevPixels[s].y = (int) sumY;
       ptrDevPixels[s].z = (int) sumZ;
-      ptrDevPixels[s].w = 255;
     }
 
     ptrDevPixels[s].w = 255;
