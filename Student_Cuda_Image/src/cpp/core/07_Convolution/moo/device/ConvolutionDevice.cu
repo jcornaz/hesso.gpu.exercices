@@ -9,7 +9,8 @@ __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int
 __global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight) {
   const int NB_THREADS = Indice2D::nbThread();
   const int TID = Indice2D::tid();
-  const int N = imageWidth * imageHeight;
+  const int SIZE_IMAGE = imageWidth * imageHeight;
+  const int SIZE_KERNEL = kernelWidth * kernelHeight;
 
   const int DELTA_RIGHT = kernelWidth / 2;
   const int DELTA_LEFT = kernelWidth - DELTA_RIGHT;
@@ -17,34 +18,29 @@ __global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeigh
   const int DELTA_UP = kernelHeight - DELTA_DOWN;
 
   int s = TID;
-  int i, j;
+  int i, j, si, sk, ik, jk;
   float sumX, sumY, sumZ;
-  while (s < N) {
+  while (s < SIZE_IMAGE) {
     IndiceTools::toIJ(s, imageWidth, &i, &j);
 
-    ptrDevPixels[s].x = 255;
-    ptrDevPixels[s].y = 0;
-    ptrDevPixels[s].z = 0;
-
-    if (i - DELTA_LEFT >= 0 && i + DELTA_RIGHT < imageWidth && j - DELTA_UP >= 0 && j + DELTA_DOWN < imageHeight) {
+    if (i - DELTA_UP >= 0 && i + DELTA_DOWN < imageHeight && j - DELTA_LEFT >= 0 && j + DELTA_RIGHT < imageWidth) {
       sumX = 0.0;
       sumY = 0.0;
       sumZ = 0.0;
 
-      int si, sk;
-      for (int ik = 0 ; ik < kernelHeight ; ik++) {
-        for (int jk = 0 ; jk < kernelWidth ; jk++) {
-          si = IndiceTools::toS(imageWidth, i - DELTA_LEFT + ik, j - DELTA_UP + j);
-          sk = IndiceTools::toS(kernelWidth, ik, jk);
-          sumX += ptrDevPixels[si].x * ptrDevKernel[sk];
-          sumY += ptrDevPixels[si].y * ptrDevKernel[sk];
-          sumZ += ptrDevPixels[si].z * ptrDevKernel[sk];
-        }
+      sk = 0;
+      while (sk < SIZE_KERNEL) {
+        IndiceTools::toIJ(sk, kernelWidth, &ik, &jk);
+        si = IndiceTools::toS(imageWidth, i - DELTA_UP + ik, j - DELTA_LEFT + jk);
+        sumX += ptrDevPixels[si].x * ptrDevKernel[sk];
+        sumY += ptrDevPixels[si].y * ptrDevKernel[sk];
+        sumZ += ptrDevPixels[si].z * ptrDevKernel[sk];
+        sk++;
       }
 
-      ptrDevPixels[s].x = (int) (sumX / (kernelWidth * kernelHeight));
-      ptrDevPixels[s].y = (int) (sumY / (kernelWidth * kernelHeight));
-      ptrDevPixels[s].z = (int) (sumZ / (kernelWidth * kernelHeight));
+      ptrDevPixels[s].x = (int) sumX;
+      ptrDevPixels[s].y = (int) sumY;
+      ptrDevPixels[s].z = (int) sumZ;
       ptrDevPixels[s].w = 255;
     }
 
