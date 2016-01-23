@@ -1,15 +1,13 @@
 #include "ConvolutionProvider.h"
 
 ConvolutionMOO* ConvolutionProvider::createMOO() {
-  float weights[100];
+  float weights[2500];
 
-  for (int i = 0 ; i < 100 ; i++) {
-    weights[i] = 0.1f;
+  for (int i = 0 ; i < 2500 ; i++) {
+    weights[i] = 1.0 / 2500.0;
   }
 
-  ConvolutionKernel kernel(10, 10, weights);
-
-  return new ConvolutionMOO(kernel, "/media/Data/Video/autoroute.mp4");
+  return new ConvolutionMOO("/media/Data/Video/autoroute.mp4", 50, 50, weights);
 }
 
 Image* ConvolutionProvider::createGL() {

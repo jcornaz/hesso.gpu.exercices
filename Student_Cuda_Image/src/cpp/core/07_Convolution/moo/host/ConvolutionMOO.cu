@@ -5,21 +5,22 @@
 extern __global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
 extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
 
-ConvolutionMOO::ConvolutionMOO(ConvolutionKernel& kernel_, string videoPath) :
-    kernel(kernel_)
-    {
+ConvolutionMOO::ConvolutionMOO(string videoPath, int kernelWidth, int kernelHeight, float* ptrKernel) {
 
+  this->t = 0;
+  this->kernelWidth = kernelWidth;
+  this->kernelHeight = kernelHeight;
 
   this->dg = dim3(64, 64, 1);
   this->db = dim3(32, 32, 1);
 
   this->videoCapter = new CVCaptureVideo("/media/Data/Video/autoroute.mp4");
-  this->t = 0;
 
   Device::assertDim(dg, db);
 
-  HANDLE_ERROR(cudaMalloc(&this->ptrDevKernel, sizeof(float) * kernel.getSize()));
-  HANDLE_ERROR(cudaMemcpy(this->ptrDevKernel, kernel.getWeights(), sizeof(float) * kernel.getSize(), cudaMemcpyHostToDevice));
+  size_t size = sizeof(float) * kernelWidth * kernelHeight;
+  HANDLE_ERROR(cudaMalloc(&this->ptrDevKernel, size));
+  HANDLE_ERROR(cudaMemcpy(this->ptrDevKernel, ptrKernel, size, cudaMemcpyHostToDevice));
 
   this->videoCapter->start();
 }
@@ -41,7 +42,7 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   HANDLE_ERROR(cudaMemcpy(ptrDevPixels, ptrImage, sizeof(uchar4) * w * h, cudaMemcpyHostToDevice));
 
   convertInBlackAndWhite<<<dg,db>>>(ptrDevPixels, w, h);
-  convolution<<<dg,db>>>(ptrDevPixels, w, h, this->ptrDevKernel, this->kernel.getWidth(), this->kernel.getHeight());
+  convolution<<<dg,db>>>(ptrDevPixels, w, h, this->ptrDevKernel, this->kernelWidth, this->kernelHeight);
 }
 
 /**
