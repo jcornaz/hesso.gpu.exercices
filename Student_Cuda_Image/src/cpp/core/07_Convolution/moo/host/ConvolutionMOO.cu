@@ -3,6 +3,7 @@
 #include "OpencvTools.h"
 
 extern __global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
+extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
 
 ConvolutionMOO::ConvolutionMOO(ConvolutionKernel& kernel_, string videoPath) :
     kernel(kernel_)
@@ -38,6 +39,8 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   OpencvTools::switchRB(matRGBA, matBGR);
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
   HANDLE_ERROR(cudaMemcpy(ptrDevPixels, ptrImage, sizeof(uchar4) * w * h, cudaMemcpyHostToDevice));
+
+  convertInBlackAndWhite<<<dg,db>>>(ptrDevPixels, w, h);
   convolution<<<dg,db>>>(ptrDevPixels, w, h, this->ptrDevKernel, this->kernel.getWidth(), this->kernel.getHeight());
 }
 

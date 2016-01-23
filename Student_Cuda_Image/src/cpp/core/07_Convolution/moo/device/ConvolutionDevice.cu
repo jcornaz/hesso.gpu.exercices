@@ -3,6 +3,8 @@
 #include "IndiceTools.h"
 
 __global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
+__global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
+
 
 __global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight) {
   const int NB_THREADS = Indice2D::nbThread();
@@ -36,6 +38,24 @@ __global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeigh
       ptrDevPixels[s].z = (int) (sumZ / (kernelWidth * kernelHeight));
       ptrDevPixels[s].w = 255;
     }
+
+    s += NB_THREADS;
+  }
+}
+
+__global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight) {
+  const int NB_THREADS = Indice2D::nbThread();
+  const int TID = Indice2D::tid();
+  const int N = imageWidth * imageHeight;
+
+  int s = TID;
+  while (s < N) {
+    
+    char grayLevel = (ptrDevPixels[s].x + ptrDevPixels[s].y + ptrDevPixels[s].z) / 3;
+
+    ptrDevPixels[s].x = grayLevel;
+    ptrDevPixels[s].y = grayLevel;
+    ptrDevPixels[s].z = grayLevel;
 
     s += NB_THREADS;
   }
