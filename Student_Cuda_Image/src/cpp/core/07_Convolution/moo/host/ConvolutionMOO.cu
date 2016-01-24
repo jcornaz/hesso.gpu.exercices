@@ -4,7 +4,7 @@
 #include "cudaType.h"
 
 extern __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
-extern __global__ void copy(uchar4* ptrDevPixelsIn, uchar4* ptrDevPixelsOut);
+extern __global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, int kernelWidth);
 extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
 
 ConvolutionMOO::ConvolutionMOO(string videoPath, int kernelWidth, int kernelHeight, float* ptrKernel) {
@@ -46,6 +46,10 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
 
   convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, w, h);
   convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h, this->ptrDevKernel, this->kernelWidth, this->kernelHeight);
+
+  HANDLE_ERROR(cudaMemcpy(this->ptrDevImage, ptrDevPixels, sizeof(uchar4) * w * h, cudaMemcpyDeviceToDevice));
+
+  transform<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h, 3);
 }
 
 /**
