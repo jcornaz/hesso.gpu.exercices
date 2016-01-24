@@ -1,34 +1,37 @@
 #include "ConvolutionMOO.h"
 #include "Device.h"
 #include "OpencvTools.h"
+#include "cudaType.h"
 
-extern __global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
+extern __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
+extern __global__ void copy(uchar4* ptrDevPixelsIn, uchar4* ptrDevPixelsOut);
 extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
 
 ConvolutionMOO::ConvolutionMOO(string videoPath, int kernelWidth, int kernelHeight, float* ptrKernel) {
 
+  this->dg = dim3(64, 64, 1);
+  this->db = dim3(32, 32, 1);
+  Device::assertDim(dg, db);
+
   this->t = 0;
   this->kernelWidth = kernelWidth;
   this->kernelHeight = kernelHeight;
-
-  this->dg = dim3(64, 64, 1);
-  this->db = dim3(32, 32, 1);
-
   this->videoCapter = new CVCaptureVideo("/media/Data/Video/autoroute.mp4");
-
-  Device::assertDim(dg, db);
-
-  size_t size = sizeof(float) * kernelWidth * kernelHeight;
-  HANDLE_ERROR(cudaMalloc(&this->ptrDevKernel, size));
-  HANDLE_ERROR(cudaMemcpy(this->ptrDevKernel, ptrKernel, size, cudaMemcpyHostToDevice));
-
   this->videoCapter->start();
+
+  size_t kernelSize = sizeof(float) * kernelWidth * kernelHeight;
+  HANDLE_ERROR(cudaMalloc(&this->ptrDevKernel, kernelSize));
+  HANDLE_ERROR(cudaMalloc(&this->ptrDevImage, sizeof(uchar4) * this->videoCapter->getW() * this->videoCapter->getH()));
+  HANDLE_ERROR(cudaMemcpy(this->ptrDevKernel, ptrKernel, kernelSize, cudaMemcpyHostToDevice));
+
+  std::cout << this->videoCapter->getW() << ", " << this->videoCapter->getH() << std::endl;
 }
 
 ConvolutionMOO::~ConvolutionMOO() {
   this->videoCapter->stop();
   free(this->videoCapter);
   HANDLE_ERROR(cudaFree(this->ptrDevKernel));
+  HANDLE_ERROR(cudaFree(this->ptrDevImage));
 }
 
 /**
@@ -39,10 +42,10 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   Mat matBGR = this->videoCapter->provideBGR();
   OpencvTools::switchRB(matRGBA, matBGR);
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
-  HANDLE_ERROR(cudaMemcpy(ptrDevPixels, ptrImage, sizeof(uchar4) * w * h, cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(this->ptrDevImage, ptrImage, sizeof(uchar4) * w * h, cudaMemcpyHostToDevice));
 
-  convertInBlackAndWhite<<<dg,db>>>(ptrDevPixels, w, h);
-  convolution<<<dg,db>>>(ptrDevPixels, w, h, this->ptrDevKernel, this->kernelWidth, this->kernelHeight);
+  convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, w, h);
+  convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h, this->ptrDevKernel, this->kernelWidth, this->kernelHeight);
 }
 
 /**

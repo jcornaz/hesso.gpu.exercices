@@ -2,11 +2,10 @@
 #include "Indice2D.h"
 #include "IndiceTools.h"
 
-__global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
+__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
 
-
-__global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight) {
+__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight) {
   const int NB_THREADS = Indice2D::nbThread();
   const int TID = Indice2D::tid();
   const int SIZE_IMAGE = imageWidth * imageHeight;
@@ -38,12 +37,16 @@ __global__ void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeigh
         sk++;
       }
 
-      ptrDevPixels[s].x = (int) sumX;
-      ptrDevPixels[s].y = (int) sumY;
-      ptrDevPixels[s].z = (int) sumZ;
+      ptrDevResult[s].x = (int) sumX;
+      ptrDevResult[s].y = (int) sumY;
+      ptrDevResult[s].z = (int) sumZ;
+    } else {
+      ptrDevResult[s].x = 0;
+      ptrDevResult[s].y = 0;
+      ptrDevResult[s].z = 0;
     }
 
-    ptrDevPixels[s].w = 255;
+    ptrDevResult[s].w = 255;
     s += NB_THREADS;
   }
 }
