@@ -19,28 +19,24 @@ __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imag
 
   int s = TID;
   int i, j, si, sk, ik, jk;
-  float sumX, sumY, sumZ;
+  float sum;
   while (s < SIZE_IMAGE) {
     IndiceTools::toIJ(s, imageWidth, &i, &j);
 
     if (i - DELTA_UP >= 0 && i + DELTA_DOWN < imageHeight && j - DELTA_LEFT >= 0 && j + DELTA_RIGHT < imageWidth) {
-      sumX = 0.0;
-      sumY = 0.0;
-      sumZ = 0.0;
+      sum = 0.0;
 
       sk = 0;
       while (sk < SIZE_KERNEL) {
         IndiceTools::toIJ(sk, kernelWidth, &ik, &jk);
         si = IndiceTools::toS(imageWidth, i - DELTA_UP + ik, j - DELTA_LEFT + jk);
-        sumX += ptrDevPixels[si].x * ptrDevKernel[sk];
-        sumY += ptrDevPixels[si].y * ptrDevKernel[sk];
-        sumZ += ptrDevPixels[si].z * ptrDevKernel[sk];
+        sum += ptrDevPixels[si].x * ptrDevKernel[sk];
         sk++;
       }
 
-      ptrDevResult[s].x = (int) sumX;
-      ptrDevResult[s].y = (int) sumY;
-      ptrDevResult[s].z = (int) sumZ;
+      ptrDevResult[s].x = (int) sum;
+      ptrDevResult[s].y = (int) sum;
+      ptrDevResult[s].z = (int) sum;
     } else {
       ptrDevResult[s].x = 0;
       ptrDevResult[s].y = 0;
