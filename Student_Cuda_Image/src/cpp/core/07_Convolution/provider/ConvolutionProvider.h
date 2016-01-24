@@ -8,6 +8,7 @@ class ConvolutionProvider {
 
   public:
     static ConvolutionMOO* createMOO();
+    static ConvolutionMOO* createMOO(int cudaGridDim, int cudaBlockDim);
   	static Image* createGL();
 };
 
