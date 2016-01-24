@@ -19,6 +19,7 @@
 | Indices calcul improved             | 138.5 fps |
 | 1D cuda grid (instead of 2D)        | 139.4 fps |
 | Cuda grid dimension tuned           | 146.2 fps |
+| Kernel in Constant memory           | 167.0 fps |
 
 
 # Exercices

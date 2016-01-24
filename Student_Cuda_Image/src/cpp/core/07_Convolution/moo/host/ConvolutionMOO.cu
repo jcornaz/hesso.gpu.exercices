@@ -3,31 +3,28 @@
 #include "OpencvTools.h"
 #include "cudaType.h"
 
-extern __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth);
+extern __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
 extern __global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, int kernelWidth);
 extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
+extern float* getPtrDevKernel();
 
-ConvolutionMOO::ConvolutionMOO(string videoPath, int kernelWidth, float* ptrKernel, int cudaGridDim, int cudaBlockDim) {
+ConvolutionMOO::ConvolutionMOO(string videoPath, float* ptrKernel, int cudaGridDim, int cudaBlockDim) {
 
   this->dg = dim3(cudaGridDim, 1, 1);
   this->db = dim3(cudaBlockDim, 1, 1);
   Device::assertDim(dg, db);
 
   this->t = 0;
-  this->kernelWidth = kernelWidth;
   this->videoCapter = new CVCaptureVideo("/media/Data/Video/autoroute.mp4");
   this->videoCapter->start();
 
-  size_t kernelSize = sizeof(float) * kernelWidth * kernelWidth;
-  HANDLE_ERROR(cudaMalloc(&this->ptrDevKernel, kernelSize));
   HANDLE_ERROR(cudaMalloc(&this->ptrDevImage, sizeof(uchar4) * this->videoCapter->getW() * this->videoCapter->getH()));
-  HANDLE_ERROR(cudaMemcpy(this->ptrDevKernel, ptrKernel, kernelSize, cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(getPtrDevKernel(), ptrKernel, sizeof(float) * 81, cudaMemcpyHostToDevice));
 }
 
 ConvolutionMOO::~ConvolutionMOO() {
   this->videoCapter->stop();
   free(this->videoCapter);
-  HANDLE_ERROR(cudaFree(this->ptrDevKernel));
   HANDLE_ERROR(cudaFree(this->ptrDevImage));
 }
 
@@ -43,7 +40,7 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   HANDLE_ERROR(cudaMemcpy(this->ptrDevImage, ptrImage, sizeof(uchar4) * w * h, cudaMemcpyHostToDevice));
 
   convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, w, h);
-  convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h, this->ptrDevKernel, this->kernelWidth);
+  convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h);
 
   HANDLE_ERROR(cudaMemcpy(this->ptrDevImage, ptrDevPixels, sizeof(uchar4) * w * h, cudaMemcpyDeviceToDevice));
 
