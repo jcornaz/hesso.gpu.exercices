@@ -2,45 +2,46 @@
 #include "Indice2D.h"
 #include "IndiceTools.h"
 
-__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
+__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth);
 __global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, int kernelWidth);
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
 
-__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight) {
+__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth) {
   const int NB_THREADS = Indice2D::nbThread();
   const int TID = Indice2D::tid();
   const int SIZE_IMAGE = imageWidth * imageHeight;
-  const int SIZE_KERNEL = kernelWidth * kernelHeight;
-
-  const int DELTA_RIGHT = kernelWidth / 2;
-  const int DELTA_LEFT = kernelWidth - DELTA_RIGHT;
-  const int DELTA_DOWN = kernelHeight / 2;
-  const int DELTA_UP = kernelHeight - DELTA_DOWN;
+  const int SIZE_KERNEL = kernelWidth * kernelWidth;
+  const int HALF_KERNEL = SIZE_KERNEL / 2;
+  const int HALF_KERNEL_WIDTH = kernelWidth / 2;
 
   int s = TID;
-  int i, j, si, sk, ik, jk;
-  float sumX, sumY, sumZ;
+  int i, j;
+  float sum;
   while (s < SIZE_IMAGE) {
     IndiceTools::toIJ(s, imageWidth, &i, &j);
 
-    if (i - DELTA_UP >= 0 && i + DELTA_DOWN < imageHeight && j - DELTA_LEFT >= 0 && j + DELTA_RIGHT < imageWidth) {
-      sumX = 0.0;
-      sumY = 0.0;
-      sumZ = 0.0;
+    if (i - HALF_KERNEL_WIDTH >= 0 && i + HALF_KERNEL_WIDTH < imageHeight && j - HALF_KERNEL_WIDTH >= 0 && j + HALF_KERNEL_WIDTH < imageWidth) {
+      sum = 0.0;
 
-      sk = 0;
-      while (sk < SIZE_KERNEL) {
-        IndiceTools::toIJ(sk, kernelWidth, &ik, &jk);
-        si = IndiceTools::toS(imageWidth, i - DELTA_UP + ik, j - DELTA_LEFT + jk);
-        sumX += ptrDevPixels[si].x * ptrDevKernel[sk];
-        sumY += ptrDevPixels[si].y * ptrDevKernel[sk];
-        sumZ += ptrDevPixels[si].z * ptrDevKernel[sk];
-        sk++;
+      for (int v = 1 ; v <= HALF_KERNEL_WIDTH ; v++) {
+        for (int u = 1 ; u <= HALF_KERNEL_WIDTH ; u++) {
+          sum += ptrDevPixels[s + v * imageWidth + u].x * ptrDevKernel[HALF_KERNEL + v * kernelWidth + u];
+          sum += ptrDevPixels[s - v * imageWidth + u].x * ptrDevKernel[HALF_KERNEL - v * kernelWidth + u];
+          sum += ptrDevPixels[s + v * imageWidth - u].x * ptrDevKernel[HALF_KERNEL + v * kernelWidth - u];
+          sum += ptrDevPixels[s - v * imageWidth - u].x * ptrDevKernel[HALF_KERNEL - v * kernelWidth - u];
+        }
+
+        sum += ptrDevPixels[s - v * imageWidth].x * ptrDevKernel[HALF_KERNEL - v * kernelWidth];
+        sum += ptrDevPixels[s + v * imageWidth].x * ptrDevKernel[HALF_KERNEL + v * kernelWidth];
+        sum += ptrDevPixels[s + v].x * ptrDevKernel[HALF_KERNEL + v];
+        sum += ptrDevPixels[s - v].x * ptrDevKernel[HALF_KERNEL - v];
       }
 
-      ptrDevResult[s].x = (int) sumX;
-      ptrDevResult[s].y = (int) sumY;
-      ptrDevResult[s].z = (int) sumZ;
+      sum += ptrDevPixels[s].x * ptrDevKernel[HALF_KERNEL];
+
+      ptrDevResult[s].x = (int) sum;
+      ptrDevResult[s].y = (int) sum;
+      ptrDevResult[s].z = (int) sum;
     } else {
       ptrDevResult[s].x = 0;
       ptrDevResult[s].y = 0;

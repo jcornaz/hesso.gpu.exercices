@@ -7,7 +7,7 @@ ConvolutionMOO* ConvolutionProvider::createMOO() {
     weights[i] = weights[i] / 100.0;
   }
 
-  return new ConvolutionMOO("/media/Data/Video/autoroute.mp4", 9, 9, weights);
+  return new ConvolutionMOO("/media/Data/Video/autoroute.mp4", 9, weights);
 }
 
 Image* ConvolutionProvider::createGL() {
