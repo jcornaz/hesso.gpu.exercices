@@ -38,12 +38,13 @@ ConvolutionMOO::~ConvolutionMOO() {
 * Call periodicly by the api
 */
 void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
-  Mat matRGBA(h, w, CV_8UC1);
+  Mat matRGBA(h, w, CV_8UC4);
   Mat matBGR = this->videoCapter->provideBGR();
   OpencvTools::switchRB(matRGBA, matBGR);
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
-  HANDLE_ERROR(cudaMemcpy(this->ptrDevImage, ptrImage, sizeof(uchar4) * w * h, cudaMemcpyHostToDevice));
 
+  HANDLE_ERROR(cudaMemcpy(this->ptrDevImage, ptrImage, sizeof(uchar4) * w * h, cudaMemcpyHostToDevice));
+  
   convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, w, h);
   convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h, this->ptrDevKernel, this->kernelWidth, this->kernelHeight);
 
