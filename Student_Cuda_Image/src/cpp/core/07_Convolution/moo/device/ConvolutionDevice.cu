@@ -2,22 +2,32 @@
 #include "Indice1D.h"
 #include "IndiceTools.h"
 
-__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth);
-__global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, int kernelWidth);
+#define KERNEL_WIDTH 9
+#define KERNEL_SIZE 81
+
+__constant__ float KERNEL[KERNEL_SIZE];
+
+__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
+__global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
 
-__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth) {
+float* getPtrDevKernel() {
+  float* ptrDevKernel;
+  HANDLE_ERROR(cudaGetSymbolAddress((void**) &ptrDevKernel, KERNEL));
+  return ptrDevKernel;
+}
+
+__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight) {
   const int NB_THREADS = Indice1D::nbThread();
   const int TID = Indice1D::tid();
-  const int SIZE_IMAGE = imageWidth * imageHeight;
-  const int SIZE_KERNEL = kernelWidth * kernelWidth;
-  const int HALF_KERNEL = SIZE_KERNEL / 2;
-  const int HALF_KERNEL_WIDTH = kernelWidth / 2;
+  const int IMAGE_SIZE = imageWidth * imageHeight;
+  const int HALF_KERNEL_SIZE = KERNEL_SIZE / 2;
+  const int HALF_KERNEL_WIDTH = KERNEL_WIDTH / 2;
 
   int s = TID;
   int i, j;
   float sum;
-  while (s < SIZE_IMAGE) {
+  while (s < IMAGE_SIZE) {
     IndiceTools::toIJ(s, imageWidth, &i, &j);
 
     if (i - HALF_KERNEL_WIDTH >= 0 && i + HALF_KERNEL_WIDTH < imageHeight && j - HALF_KERNEL_WIDTH >= 0 && j + HALF_KERNEL_WIDTH < imageWidth) {
@@ -25,19 +35,19 @@ __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imag
 
       for (int v = 1 ; v <= HALF_KERNEL_WIDTH ; v++) {
         for (int u = 1 ; u <= HALF_KERNEL_WIDTH ; u++) {
-          sum += ptrDevPixels[s + v * imageWidth + u].x * ptrDevKernel[HALF_KERNEL + v * kernelWidth + u];
-          sum += ptrDevPixels[s - v * imageWidth + u].x * ptrDevKernel[HALF_KERNEL - v * kernelWidth + u];
-          sum += ptrDevPixels[s + v * imageWidth - u].x * ptrDevKernel[HALF_KERNEL + v * kernelWidth - u];
-          sum += ptrDevPixels[s - v * imageWidth - u].x * ptrDevKernel[HALF_KERNEL - v * kernelWidth - u];
+          sum += ptrDevPixels[s + v * imageWidth + u].x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH + u];
+          sum += ptrDevPixels[s - v * imageWidth + u].x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH + u];
+          sum += ptrDevPixels[s + v * imageWidth - u].x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH - u];
+          sum += ptrDevPixels[s - v * imageWidth - u].x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH - u];
         }
 
-        sum += ptrDevPixels[s - v * imageWidth].x * ptrDevKernel[HALF_KERNEL - v * kernelWidth];
-        sum += ptrDevPixels[s + v * imageWidth].x * ptrDevKernel[HALF_KERNEL + v * kernelWidth];
-        sum += ptrDevPixels[s + v].x * ptrDevKernel[HALF_KERNEL + v];
-        sum += ptrDevPixels[s - v].x * ptrDevKernel[HALF_KERNEL - v];
+        sum += ptrDevPixels[s - v * imageWidth].x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH];
+        sum += ptrDevPixels[s + v * imageWidth].x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH];
+        sum += ptrDevPixels[s + v].x * KERNEL[HALF_KERNEL_SIZE + v];
+        sum += ptrDevPixels[s - v].x * KERNEL[HALF_KERNEL_SIZE - v];
       }
 
-      sum += ptrDevPixels[s].x * ptrDevKernel[HALF_KERNEL];
+      sum += ptrDevPixels[s].x * KERNEL[HALF_KERNEL_SIZE];
 
       ptrDevResult[s].x = (int) sum;
       ptrDevResult[s].y = (int) sum;
@@ -56,23 +66,18 @@ __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imag
 __global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, int kernelWidth) {
   const int NB_THREADS = Indice1D::nbThread();
   const int TID = Indice1D::tid();
-  const int SIZE_IMAGE = imageWidth * imageHeight;
-  const int SIZE_KERNEL = kernelWidth * kernelWidth;
-
-  const int DELTA_RIGHT = kernelWidth / 2;
-  const int DELTA_LEFT = kernelWidth - DELTA_RIGHT;
-  const int DELTA_DOWN = DELTA_RIGHT;
-  const int DELTA_UP = DELTA_LEFT;
-
+  const int IMAGE_SIZE = imageWidth * imageHeight;
+  const int TR_KERNEL_SIZE = kernelWidth * kernelWidth;
+  const int TR_HALF_KERNEL_WIDTH = kernelWidth / 2;
 
   int s = TID;
   int i, j, si, sk, ik, jk;
   int xmin, ymin, zmin;
   int xmax, ymax, zmax;
-  while (s < SIZE_IMAGE) {
+  while (s < IMAGE_SIZE) {
     IndiceTools::toIJ(s, imageWidth, &i, &j);
 
-    if (i - DELTA_UP >= 0 && i + DELTA_DOWN < imageHeight && j - DELTA_LEFT >= 0 && j + DELTA_RIGHT < imageWidth) {
+    if (i - TR_HALF_KERNEL_WIDTH >= 0 && i + TR_HALF_KERNEL_WIDTH < imageHeight && j - TR_HALF_KERNEL_WIDTH >= 0 && j + TR_HALF_KERNEL_WIDTH < imageWidth) {
       xmin = 256;
       ymin = 256;
       zmin = 256;
@@ -81,9 +86,9 @@ __global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageW
       zmax = -1;
 
       sk = 0;
-      while (sk < SIZE_KERNEL) {
+      while (sk < TR_KERNEL_SIZE) {
         IndiceTools::toIJ(sk, kernelWidth, &ik, &jk);
-        si = IndiceTools::toS(imageWidth, i - DELTA_UP + ik, j - DELTA_LEFT + jk);
+        si = IndiceTools::toS(imageWidth, i - TR_HALF_KERNEL_WIDTH + ik, j - TR_HALF_KERNEL_WIDTH + jk);
 
         if (ptrDevPixels[si].x < xmin) { xmin = ptrDevPixels[si].x; }
         if (ptrDevPixels[si].x > xmax) { xmax = ptrDevPixels[si].x; }

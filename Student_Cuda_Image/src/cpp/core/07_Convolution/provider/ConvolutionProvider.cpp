@@ -11,7 +11,7 @@ ConvolutionMOO* ConvolutionProvider::createMOO(int cudaGridDim, int cudaBlockDim
     weights[i] = weights[i] / 100.0;
   }
 
-  return new ConvolutionMOO("/media/Data/Video/autoroute.mp4", 9, weights, cudaGridDim, cudaBlockDim);
+  return new ConvolutionMOO("/media/Data/Video/autoroute.mp4", weights, cudaGridDim, cudaBlockDim);
 }
 
 Image* ConvolutionProvider::createGL() {
