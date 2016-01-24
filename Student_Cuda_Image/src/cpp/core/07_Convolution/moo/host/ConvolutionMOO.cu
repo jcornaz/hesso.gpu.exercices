@@ -9,8 +9,8 @@ extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWid
 
 ConvolutionMOO::ConvolutionMOO(string videoPath, int kernelWidth, float* ptrKernel) {
 
-  this->dg = dim3(64, 64, 1);
-  this->db = dim3(32, 32, 1);
+  this->dg = dim3(1096, 1, 1);
+  this->db = dim3(1024, 1, 1);
   Device::assertDim(dg, db);
 
   this->t = 0;

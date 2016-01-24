@@ -22,7 +22,7 @@ int mainFreeGL(Option& option) {
 
   cout << "\n[FreeGL] mode" << endl;
 
-  const int NB_ITERATION = 1000;
+  const int NB_ITERATION = 2000;
 
   for( int i = 0 ; i < 5 ; i++ )
   {
