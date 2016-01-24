@@ -1,5 +1,5 @@
 #include "cudaType.h"
-#include "Indice2D.h"
+#include "Indice1D.h"
 #include "IndiceTools.h"
 
 __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth);
@@ -7,8 +7,8 @@ __global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageW
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
 
 __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth) {
-  const int NB_THREADS = Indice2D::nbThread();
-  const int TID = Indice2D::tid();
+  const int NB_THREADS = Indice1D::nbThread();
+  const int TID = Indice1D::tid();
   const int SIZE_IMAGE = imageWidth * imageHeight;
   const int SIZE_KERNEL = kernelWidth * kernelWidth;
   const int HALF_KERNEL = SIZE_KERNEL / 2;
@@ -54,8 +54,8 @@ __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imag
 }
 
 __global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, int kernelWidth) {
-  const int NB_THREADS = Indice2D::nbThread();
-  const int TID = Indice2D::tid();
+  const int NB_THREADS = Indice1D::nbThread();
+  const int TID = Indice1D::tid();
   const int SIZE_IMAGE = imageWidth * imageHeight;
   const int SIZE_KERNEL = kernelWidth * kernelWidth;
 
@@ -112,8 +112,8 @@ __global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageW
 }
 
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight) {
-  const int NB_THREADS = Indice2D::nbThread();
-  const int TID = Indice2D::tid();
+  const int NB_THREADS = Indice1D::nbThread();
+  const int TID = Indice1D::tid();
   const int N = imageWidth * imageHeight;
 
   int s = TID;

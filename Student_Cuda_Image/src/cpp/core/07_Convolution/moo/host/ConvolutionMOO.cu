@@ -7,10 +7,10 @@ extern __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, i
 extern __global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, int kernelWidth);
 extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
 
-ConvolutionMOO::ConvolutionMOO(string videoPath, int kernelWidth, float* ptrKernel) {
+ConvolutionMOO::ConvolutionMOO(string videoPath, int kernelWidth, float* ptrKernel, int cudaGridDim, int cudaBlockDim) {
 
-  this->dg = dim3(64, 64, 1);
-  this->db = dim3(32, 32, 1);
+  this->dg = dim3(cudaGridDim, 1, 1);
+  this->db = dim3(cudaBlockDim, 1, 1);
   Device::assertDim(dg, db);
 
   this->t = 0;
