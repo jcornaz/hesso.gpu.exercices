@@ -53,34 +53,27 @@ __global__ void convolution(uchar4* ptrDevResult, int imageWidth, int imageHeigh
   float sum;
   if (s < IMAGE_SIZE) {
     IndiceTools::toIJ(s, imageWidth, &i, &j);
+    sum = 0.0;
 
-    if (i - HALF_KERNEL_WIDTH >= 0 && i + HALF_KERNEL_WIDTH < imageHeight && j - HALF_KERNEL_WIDTH >= 0 && j + HALF_KERNEL_WIDTH < imageWidth) {
-      sum = 0.0;
-
-      for (int v = 1 ; v <= HALF_KERNEL_WIDTH ; v++) {
-        for (int u = 1 ; u <= HALF_KERNEL_WIDTH ; u++) {
-          sum += tex2D(textureRef, j + u, i + v).x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH + u];
-          sum += tex2D(textureRef, j + u, i - v).x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH + u];
-          sum += tex2D(textureRef, j - u, i + v).x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH - u];
-          sum += tex2D(textureRef, j - u, i - v).x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH - u];
-        }
-
-        sum += tex2D(textureRef, j, i - v).x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH];
-        sum += tex2D(textureRef, j, i + v).x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH];
-        sum += tex2D(textureRef, j - v, i).x * KERNEL[HALF_KERNEL_SIZE - v];
-        sum += tex2D(textureRef, j + v, i).x * KERNEL[HALF_KERNEL_SIZE + v];
+    for (int v = 1 ; v <= HALF_KERNEL_WIDTH ; v++) {
+      for (int u = 1 ; u <= HALF_KERNEL_WIDTH ; u++) {
+        sum += tex2D(textureRef, j + u, i + v).x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH + u];
+        sum += tex2D(textureRef, j + u, i - v).x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH + u];
+        sum += tex2D(textureRef, j - u, i + v).x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH - u];
+        sum += tex2D(textureRef, j - u, i - v).x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH - u];
       }
 
-      sum += tex2D(textureRef, j, i).x * KERNEL[HALF_KERNEL_SIZE];
-
-      ptrDevResult[s].x = (int) sum;
-      ptrDevResult[s].y = (int) sum;
-      ptrDevResult[s].z = (int) sum;
-    } else {
-      ptrDevResult[s].x = 0;
-      ptrDevResult[s].y = 0;
-      ptrDevResult[s].z = 0;
+      sum += tex2D(textureRef, j, i - v).x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH];
+      sum += tex2D(textureRef, j, i + v).x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH];
+      sum += tex2D(textureRef, j - v, i).x * KERNEL[HALF_KERNEL_SIZE - v];
+      sum += tex2D(textureRef, j + v, i).x * KERNEL[HALF_KERNEL_SIZE + v];
     }
+
+    sum += tex2D(textureRef, j, i).x * KERNEL[HALF_KERNEL_SIZE];
+
+    ptrDevResult[s].x = (int) sum;
+    ptrDevResult[s].y = (int) sum;
+    ptrDevResult[s].z = (int) sum;
 
     ptrDevResult[s].w = 255;
     s += NB_THREADS;
