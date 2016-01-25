@@ -1,9 +1,7 @@
 #include "cudaType.h"
 #include "Indice1D.h"
 #include "IndiceTools.h"
-
-#define KERNEL_WIDTH 9
-#define KERNEL_SIZE 81
+#include "ConvolutionConstants.h"
 
 __constant__ float KERNEL[KERNEL_SIZE];
 
@@ -11,6 +9,10 @@ __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int
 __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
 __global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax);
 __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite);
+
+__device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, uchar4* ptrDevPixels, int imageSize);
+__device__ void intraBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int arraySize);
+__device__ void interBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int* minimumResult, int* maximumResult);
 
 float* getPtrDevKernel() {
   float* ptrDevKernel;
@@ -82,11 +84,14 @@ __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int
   }
 }
 
-__global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax) {
-  const int NB_THREADS = Indice1D::nbThread();
-  const int TID = Indice1D::tid();
+__global__ void computeMinMax(uchar4* ptrDevPixels, int imageSize, int* ptrDevMin, int* ptrDevMax) {
+  __shared__ int ptrDevMinimumsSM[NB_THREADS_BY_BLOCK];
+  __shared__ int ptrDevMaximumsSM[NB_THREADS_BY_BLOCK];
 
-  // TODO
+  intraThreadMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, ptrDevPixels, imageSize);
+  __syncthreads();
+  intraBlockMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, NB_THREADS_BY_BLOCK);
+  interBlockMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, ptrDevMin, ptrDevMax);
 }
 
 __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite) {
@@ -94,4 +99,60 @@ __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int*
   const int TID = Indice1D::tid();
 
   // TODO
+}
+
+
+__device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, uchar4* ptrDevPixels, int imageSize) {
+  const int NB_THREADS = Indice1D::nbThread();
+  const int TID = Indice1D::tid();
+
+  int s = TID;
+  int min = 255;
+  int max = 0;
+  int value;
+  while(s < imageSize) {
+    value = ptrDevPixels[s].x;
+    if (value < min) { min = value; }
+    if (value > max) { max = value; }
+    s += NB_THREADS;
+  }
+
+  minimumsArraySM[threadIdx.x] = min;
+  maximumsArraySM[threadIdx.x] = max;
+}
+
+__device__ void intraBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int arraySize) {
+  const int NB_THREADS_LOCAL = blockDim.x;
+  const int TID_LOCAL = threadIdx.x;
+
+  int n = arraySize;
+  int half = arraySize / 2;
+  while (half >= 1) {
+
+    int s = TID_LOCAL;
+    while (s < half) {
+
+      if (minimumsArraySM[s + half] < minimumsArraySM[s]) {
+        minimumsArraySM[s] = minimumsArraySM[s + half];
+      }
+
+      if (maximumsArraySM[s + half] > maximumsArraySM[s]) {
+        maximumsArraySM[s] = maximumsArraySM[s + half];
+      }
+
+      s += NB_THREADS_LOCAL;
+    }
+
+    __syncthreads();
+
+    n = half;
+    half = n / 2;
+  }
+}
+
+__device__ void interBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int* minimumResult, int* maximumResult) {
+  if (threadIdx.x == 0) {
+    atomicMin(minimumResult, minimumsArraySM[0]);
+    atomicMax(maximumResult, maximumsArraySM[0]);
+  }
 }
