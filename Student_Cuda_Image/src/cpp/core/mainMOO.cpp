@@ -26,7 +26,7 @@ int mainFreeGL(Option& option) {
 
   for( int i = 0 ; i < 5 ; i++ )
   {
-    animeAndDelete(ConvolutionProvider::createMOO(512, 512), NB_ITERATION);
+    animeAndDelete(ConvolutionProvider::createMOO(), NB_ITERATION);
   }
 
   cout << "\n[FreeGL] end" << endl;

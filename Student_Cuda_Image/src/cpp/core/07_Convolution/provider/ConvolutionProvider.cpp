@@ -1,7 +1,7 @@
 #include "ConvolutionProvider.h"
 
 ConvolutionMOO* ConvolutionProvider::createMOO() {
-  return ConvolutionProvider::createMOO(4096, 1024);
+  return ConvolutionProvider::createMOO(512, 512);
 }
 
 ConvolutionMOO* ConvolutionProvider::createMOO(int cudaGridDim, int cudaBlockDim) {
