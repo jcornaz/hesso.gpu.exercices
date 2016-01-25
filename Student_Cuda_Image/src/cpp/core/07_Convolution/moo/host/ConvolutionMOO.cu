@@ -91,6 +91,7 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   Mat matBGR = this->videoCapter->provideBGR();
   OpencvTools::switchRB(matRGBA, matBGR);
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
+  int imageSize = w * h;
 
   int minimums[this->nbDevices];
   int maximums[this->nbDevices];
