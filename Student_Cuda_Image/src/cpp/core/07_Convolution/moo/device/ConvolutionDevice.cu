@@ -72,39 +72,30 @@ __global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageW
 
   int s = TID;
   int i, j, si, sk, ik, jk;
-  int xmin, ymin, zmin;
-  int xmax, ymax, zmax;
+  int min, max;
   while (s < IMAGE_SIZE) {
     IndiceTools::toIJ(s, imageWidth, &i, &j);
 
     if (i - TR_HALF_KERNEL_WIDTH >= 0 && i + TR_HALF_KERNEL_WIDTH < imageHeight && j - TR_HALF_KERNEL_WIDTH >= 0 && j + TR_HALF_KERNEL_WIDTH < imageWidth) {
-      xmin = 256;
-      ymin = 256;
-      zmin = 256;
-      xmax = -1;
-      ymax = -1;
-      zmax = -1;
+      min = 256;
+      max = -1;
 
       sk = 0;
       while (sk < TR_KERNEL_SIZE) {
         IndiceTools::toIJ(sk, kernelWidth, &ik, &jk);
         si = IndiceTools::toS(imageWidth, i - TR_HALF_KERNEL_WIDTH + ik, j - TR_HALF_KERNEL_WIDTH + jk);
 
-        if (ptrDevPixels[si].x < xmin) { xmin = ptrDevPixels[si].x; }
-        if (ptrDevPixels[si].x > xmax) { xmax = ptrDevPixels[si].x; }
-        if (ptrDevPixels[si].y < ymin) { ymin = ptrDevPixels[si].y; }
-        if (ptrDevPixels[si].y > ymax) { ymax = ptrDevPixels[si].y; }
-        if (ptrDevPixels[si].z < zmin) { zmin = ptrDevPixels[si].z; }
-        if (ptrDevPixels[si].z > zmax) { zmax = ptrDevPixels[si].z; }
+        if (ptrDevPixels[si].x < min) { min = ptrDevPixels[si].x; }
+        if (ptrDevPixels[si].x > max) { max = ptrDevPixels[si].x; }
 
         sk++;
       }
 
-      float coeff = (xmax - xmin) / 255.0;
+      int value = (int) (255 - ((ptrDevPixels[s].x - min) * ((max - min) / 255.0) + min));
 
-      ptrDevResult[s].x = (int) (255 - ((ptrDevPixels[s].x - xmin) * coeff + xmin));
-      ptrDevResult[s].y = (int) (255 - ((ptrDevPixels[s].y - xmin) * coeff + xmin));
-      ptrDevResult[s].z = (int) (255 - ((ptrDevPixels[s].z - xmin) * coeff + xmin));
+      ptrDevResult[s].x = value;
+      ptrDevResult[s].y = value;
+      ptrDevResult[s].z = value;
     } else {
       ptrDevResult[s].x = 0;
       ptrDevResult[s].y = 0;
