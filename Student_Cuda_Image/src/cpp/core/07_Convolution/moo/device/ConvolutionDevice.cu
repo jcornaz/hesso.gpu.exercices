@@ -5,7 +5,7 @@
 
 __constant__ float KERNEL[KERNEL_SIZE];
 
-__global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
+__global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size);
 __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
 __global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax);
 __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite);
@@ -66,13 +66,12 @@ __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imag
   }
 }
 
-__global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight) {
+__global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size) {
   const int NB_THREADS = Indice1D::nbThread();
   const int TID = Indice1D::tid();
-  const int N = imageWidth * imageHeight;
 
   int s = TID;
-  while (s < N) {
+  while (s < size) {
 
     char grayLevel = (ptrDevPixels[s].x + ptrDevPixels[s].y + ptrDevPixels[s].z) / 3;
 

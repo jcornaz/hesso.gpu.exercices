@@ -4,7 +4,7 @@
 #include "cudaType.h"
 #include "ConvolutionConstants.h"
 
-extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
+extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size);
 extern __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
 extern __global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax);
 extern __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite);
@@ -42,14 +42,14 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   Mat matBGR = this->videoCapter->provideBGR();
   OpencvTools::switchRB(matRGBA, matBGR);
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
-  const int IMAGE_SIZE = w * h;
+  int imageSize = w * h;
 
-  HANDLE_ERROR(cudaMemcpy(ptrDevPixels, ptrImage, sizeof(uchar4) * IMAGE_SIZE, cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(ptrDevPixels, ptrImage, sizeof(uchar4) * imageSize, cudaMemcpyHostToDevice));
 
-  convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, w, h);
+  convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, imageSize);
   convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h);
-  computeMinMax<<<dg,db>>>(ptrDevPixels, IMAGE_SIZE, this->ptrDevMin, this->ptrDevMax);
-  transform<<<dg,db>>>(ptrDevPixels, IMAGE_SIZE, this->ptrDevMax, this->ptrDevMin);
+  computeMinMax<<<dg,db>>>(ptrDevPixels, imageSize, this->ptrDevMin, this->ptrDevMax);
+  transform<<<dg,db>>>(ptrDevPixels, imageSize, this->ptrDevMax, this->ptrDevMin);
 }
 
 /**
