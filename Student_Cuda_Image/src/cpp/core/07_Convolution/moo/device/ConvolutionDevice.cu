@@ -1,15 +1,18 @@
 #include "cudaType.h"
 #include "Indice1D.h"
 #include "IndiceTools.h"
-
-#define KERNEL_WIDTH 9
-#define KERNEL_SIZE 81
+#include "ConvolutionConstants.h"
 
 __constant__ float KERNEL[KERNEL_SIZE];
 
-__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
-__global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
+__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
+__global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax);
+__global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite);
+
+__device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, uchar4* ptrDevPixels, int imageSize);
+__device__ void intraBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int arraySize);
+__device__ void interBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int* minimumResult, int* maximumResult);
 
 float* getPtrDevKernel() {
   float* ptrDevKernel;
@@ -63,59 +66,6 @@ __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imag
   }
 }
 
-__global__ void transform(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, int kernelWidth) {
-  const int NB_THREADS = Indice1D::nbThread();
-  const int TID = Indice1D::tid();
-  const int IMAGE_SIZE = imageWidth * imageHeight;
-  const int TR_KERNEL_SIZE = kernelWidth * kernelWidth;
-  const int TR_HALF_KERNEL_WIDTH = kernelWidth / 2;
-
-  int s = TID;
-  int i, j, si, sk, ik, jk;
-  int xmin, ymin, zmin;
-  int xmax, ymax, zmax;
-  while (s < IMAGE_SIZE) {
-    IndiceTools::toIJ(s, imageWidth, &i, &j);
-
-    if (i - TR_HALF_KERNEL_WIDTH >= 0 && i + TR_HALF_KERNEL_WIDTH < imageHeight && j - TR_HALF_KERNEL_WIDTH >= 0 && j + TR_HALF_KERNEL_WIDTH < imageWidth) {
-      xmin = 256;
-      ymin = 256;
-      zmin = 256;
-      xmax = -1;
-      ymax = -1;
-      zmax = -1;
-
-      sk = 0;
-      while (sk < TR_KERNEL_SIZE) {
-        IndiceTools::toIJ(sk, kernelWidth, &ik, &jk);
-        si = IndiceTools::toS(imageWidth, i - TR_HALF_KERNEL_WIDTH + ik, j - TR_HALF_KERNEL_WIDTH + jk);
-
-        if (ptrDevPixels[si].x < xmin) { xmin = ptrDevPixels[si].x; }
-        if (ptrDevPixels[si].x > xmax) { xmax = ptrDevPixels[si].x; }
-        if (ptrDevPixels[si].y < ymin) { ymin = ptrDevPixels[si].y; }
-        if (ptrDevPixels[si].y > ymax) { ymax = ptrDevPixels[si].y; }
-        if (ptrDevPixels[si].z < zmin) { zmin = ptrDevPixels[si].z; }
-        if (ptrDevPixels[si].z > zmax) { zmax = ptrDevPixels[si].z; }
-
-        sk++;
-      }
-
-      float coeff = (xmax - xmin) / 255.0;
-
-      ptrDevResult[s].x = (int) (255 - ((ptrDevPixels[s].x - xmin) * coeff + xmin));
-      ptrDevResult[s].y = (int) (255 - ((ptrDevPixels[s].y - xmin) * coeff + xmin));
-      ptrDevResult[s].z = (int) (255 - ((ptrDevPixels[s].z - xmin) * coeff + xmin));
-    } else {
-      ptrDevResult[s].x = 0;
-      ptrDevResult[s].y = 0;
-      ptrDevResult[s].z = 0;
-    }
-
-    ptrDevResult[s].w = 255;
-    s += NB_THREADS;
-  }
-}
-
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight) {
   const int NB_THREADS = Indice1D::nbThread();
   const int TID = Indice1D::tid();
@@ -131,5 +81,89 @@ __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int
     ptrDevPixels[s].z = grayLevel;
 
     s += NB_THREADS;
+  }
+}
+
+__global__ void computeMinMax(uchar4* ptrDevPixels, int imageSize, int* ptrDevMin, int* ptrDevMax) {
+  __shared__ int ptrDevMinimumsSM[NB_THREADS_BY_BLOCK];
+  __shared__ int ptrDevMaximumsSM[NB_THREADS_BY_BLOCK];
+
+  intraThreadMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, ptrDevPixels, imageSize);
+  __syncthreads();
+  intraBlockMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, NB_THREADS_BY_BLOCK);
+  interBlockMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, ptrDevMin, ptrDevMax);
+}
+
+__global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite) {
+  const int NB_THREADS = Indice1D::nbThread();
+  const int TID = Indice1D::tid();
+
+  int black = *ptrDevBlack;
+  int white = *ptrDevWhite;
+  int delta = abs(white - black);
+
+  int s = TID;
+  int newValue;
+  while (s < size) {
+    newValue = (ptrDevPixels[s].x - black) * delta + black;
+    ptrDevPixels[s].x = newValue;
+    ptrDevPixels[s].y = newValue;
+    ptrDevPixels[s].z = newValue;
+    s += NB_THREADS;
+  }
+}
+
+__device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, uchar4* ptrDevPixels, int imageSize) {
+  const int NB_THREADS = Indice1D::nbThread();
+  const int TID = Indice1D::tid();
+
+  int s = TID;
+  int min = 255;
+  int max = 0;
+  int value;
+  while(s < imageSize) {
+    value = ptrDevPixels[s].x;
+    if (value < min) { min = value; }
+    if (value > max) { max = value; }
+    s += NB_THREADS;
+  }
+
+  minimumsArraySM[threadIdx.x] = min;
+  maximumsArraySM[threadIdx.x] = max;
+}
+
+__device__ void intraBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int arraySize) {
+  const int NB_THREADS_LOCAL = blockDim.x;
+  const int TID_LOCAL = threadIdx.x;
+
+  int n = arraySize;
+  int half = arraySize / 2;
+  while (half >= 1) {
+
+    int s = TID_LOCAL;
+    while (s < half) {
+
+      if (minimumsArraySM[s + half] < minimumsArraySM[s]) {
+        minimumsArraySM[s] = minimumsArraySM[s + half];
+      }
+
+      if (maximumsArraySM[s + half] > maximumsArraySM[s]) {
+        maximumsArraySM[s] = maximumsArraySM[s + half];
+      }
+
+      s += NB_THREADS_LOCAL;
+    }
+
+    __syncthreads();
+
+    n = half;
+    half = n / 2;
+  }
+}
+
+__device__ void interBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int* minimumResult, int* maximumResult) {
+  if (threadIdx.x == 0) {
+    atomicMin(minimumResult, minimumsArraySM[0]);
+    atomicMax(maximumResult, maximumsArraySM[0]);
   }
 }
