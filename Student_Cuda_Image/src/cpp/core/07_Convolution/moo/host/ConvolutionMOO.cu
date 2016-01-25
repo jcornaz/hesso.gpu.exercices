@@ -44,12 +44,12 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
   const int IMAGE_SIZE = w * h;
 
-  HANDLE_ERROR(cudaMemcpy(this->ptrDevImage, ptrImage, sizeof(uchar4) * IMAGE_SIZE, cudaMemcpyHostToDevice));
+  // HANDLE_ERROR(cudaMemcpy(ptrDevPixels, ptrImage, sizeof(uchar4) * IMAGE_SIZE, cudaMemcpyHostToDevice));
 
-  convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, w, h);
-  convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h);
-  computeMinMax<<<dg,db>>>(ptrDevPixels, IMAGE_SIZE, this->ptrDevMin, this->ptrDevMax);
-  transform<<<dg,db>>>(ptrDevPixels, IMAGE_SIZE, this->ptrDevMin, this->ptrDevMax);
+  // convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, w, h);
+  // convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h);
+  // computeMinMax<<<dg,db>>>(ptrDevPixels, IMAGE_SIZE, this->ptrDevMin, this->ptrDevMax);
+  // transform<<<dg,db>>>(ptrDevPixels, IMAGE_SIZE, this->ptrDevMax, this->ptrDevMin);
 }
 
 /**

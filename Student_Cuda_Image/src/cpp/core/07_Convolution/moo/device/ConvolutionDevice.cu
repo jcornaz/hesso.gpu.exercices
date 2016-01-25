@@ -98,9 +98,20 @@ __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int*
   const int NB_THREADS = Indice1D::nbThread();
   const int TID = Indice1D::tid();
 
-  // TODO
-}
+  int black = *ptrDevBlack;
+  int white = *ptrDevWhite;
+  int delta = abs(white - black);
 
+  int s = TID;
+  int newValue;
+  while (s < size) {
+    newValue = (ptrDevPixels[s].x - black) * delta + black;
+    ptrDevPixels[s].x = newValue;
+    ptrDevPixels[s].y = newValue;
+    ptrDevPixels[s].z = newValue;
+    s += NB_THREADS;
+  }
+}
 
 __device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, uchar4* ptrDevPixels, int imageSize) {
   const int NB_THREADS = Indice1D::nbThread();
