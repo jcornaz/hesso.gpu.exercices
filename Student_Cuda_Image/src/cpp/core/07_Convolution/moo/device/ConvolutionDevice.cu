@@ -3,7 +3,14 @@
 #include "IndiceTools.h"
 #include "ConvolutionConstants.h"
 
+texture<uchar4, 2> textureRef;
+
 __constant__ float KERNEL[KERNEL_SIZE];
+
+__host__ void initTexture();
+__host__ void bindTexture(uchar4* ptrDevPixels, int width, int heitht);
+__host__ void unbindTexture();
+__host__ float* getPtrDevKernel();
 
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size);
 __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
@@ -14,7 +21,21 @@ __device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsAr
 __device__ void intraBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int arraySize);
 __device__ void interBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int* minimumResult, int* maximumResult);
 
-float* getPtrDevKernel() {
+__host__ void initTexture() {
+  textureRef.addressMode[0] = cudaAddressModeMirror;
+  textureRef.addressMode[1] = cudaAddressModeMirror;
+}
+
+__host__ void bindTexture(uchar4* ptrDevPixels, int width, int height) {
+  cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<uchar4>();
+  cudaBindTexture2D(NULL, textureRef, ptrDevPixels, channelDesc, width, height, sizeof(uchar4) * width);
+}
+
+__host__ void unbindTexture() {
+  cudaUnbindTexture(textureRef);
+}
+
+__host__ float* getPtrDevKernel() {
   float* ptrDevKernel;
   HANDLE_ERROR(cudaGetSymbolAddress((void**) &ptrDevKernel, KERNEL));
   return ptrDevKernel;
@@ -117,7 +138,7 @@ __device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsAr
   int min = 255;
   int max = 0;
   int value;
-  
+
   if (s < imageSize) {
     value = ptrDevPixels[s].x;
     if (value < min) { min = value; }
