@@ -82,12 +82,10 @@ __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size) {
   }
 }
 
-__global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite) {
+__global__ void transform(uchar4* ptrDevPixels, int size, int black, int white) {
   const int NB_THREADS = Indice1D::nbThread();
   const int TID = Indice1D::tid();
 
-  int black = *ptrDevBlack;
-  int white = *ptrDevWhite;
   int delta = abs(white - black);
 
   int s = TID;

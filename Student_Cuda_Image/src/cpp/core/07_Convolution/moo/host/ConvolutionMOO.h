@@ -29,8 +29,10 @@ class ConvolutionMOO: public Animable_I {
     // Inputs
     int t;
     uchar4* ptrDevImage;
-    int* ptrDevMin;
-    int* ptrDevMax;
+    uchar4** ptrDevImages;
+    int** ptrDevMins;
+    int** ptrDevMaxs;
+    int nbDevices;
     CVCaptureVideo* videoCapter;
 
     // Tools
