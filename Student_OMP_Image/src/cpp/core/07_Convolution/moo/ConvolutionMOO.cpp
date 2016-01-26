@@ -79,53 +79,59 @@ int ConvolutionMOO::getH() {
 void ConvolutionMOO::convolution(uchar4* ptrPixels, int imageWidth, int imageHeight, float* ptrKernel, int kernelWidth, int kernelHeight) {
   const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
 
-  const int SIZE_IMAGE = imageWidth * imageHeight;
-  const int SIZE_KERNEL = kernelWidth * kernelHeight;
+  const int KERNEL_SIZE = kernelWidth * kernelHeight;
+  const int IMAGE_SIZE = imageWidth * imageHeight;
+  const int HALF_KERNEL_SIZE = KERNEL_SIZE / 2;
+  const int HALF_KERNEL_WIDTH = kernelWidth / 2;
 
-  const int DELTA_RIGHT = kernelWidth / 2;
-  const int DELTA_LEFT = kernelWidth - DELTA_RIGHT;
-  const int DELTA_DOWN = kernelHeight / 2;
-  const int DELTA_UP = kernelHeight - DELTA_DOWN;
-
-  uchar4 ptrResult[SIZE_IMAGE];
+  uchar4 ptrResult[IMAGE_SIZE];
 
   #pragma omp parallel
   {
     const int TID = OmpTools::getTid();
 
+
     int s = TID;
-    int i, j, si, sk, ik, jk;
-    float sumX, sumY, sumZ;
-    while (s < SIZE_IMAGE) {
+    int i, j;
+    float sum;
+    while (s < IMAGE_SIZE) {
       IndiceTools::toIJ(s, imageWidth, &i, &j);
 
-      if (i - DELTA_UP >= 0 && i + DELTA_DOWN < imageHeight && j - DELTA_LEFT >= 0 && j + DELTA_RIGHT < imageWidth) {
-        sumX = 0.0;
-        sumY = 0.0;
-        sumZ = 0.0;
+      if (i - HALF_KERNEL_WIDTH >= 0 && i + HALF_KERNEL_WIDTH < imageHeight && j - HALF_KERNEL_WIDTH >= 0 && j + HALF_KERNEL_WIDTH < imageWidth) {
+        sum = 0.0;
 
-        sk = 0;
-        while (sk < SIZE_KERNEL) {
-          IndiceTools::toIJ(sk, kernelWidth, &ik, &jk);
-          si = IndiceTools::toS(imageWidth, i - DELTA_UP + ik, j - DELTA_LEFT + jk);
-          sumX += ptrPixels[si].x * ptrKernel[sk];
-          sumY += ptrPixels[si].y * ptrKernel[sk];
-          sumZ += ptrPixels[si].z * ptrKernel[sk];
-          sk++;
+        for (int v = 1 ; v <= HALF_KERNEL_WIDTH ; v++) {
+          for (int u = 1 ; u <= HALF_KERNEL_WIDTH ; u++) {
+            sum += ptrPixels[s + v * imageWidth + u].x * ptrKernel[HALF_KERNEL_SIZE + v * kernelWidth + u];
+            sum += ptrPixels[s - v * imageWidth + u].x * ptrKernel[HALF_KERNEL_SIZE - v * kernelWidth + u];
+            sum += ptrPixels[s + v * imageWidth - u].x * ptrKernel[HALF_KERNEL_SIZE + v * kernelWidth - u];
+            sum += ptrPixels[s - v * imageWidth - u].x * ptrKernel[HALF_KERNEL_SIZE - v * kernelWidth - u];
+          }
+
+          sum += ptrPixels[s - v * imageWidth].x * ptrKernel[HALF_KERNEL_SIZE - v * kernelWidth];
+          sum += ptrPixels[s + v * imageWidth].x * ptrKernel[HALF_KERNEL_SIZE + v * kernelWidth];
+          sum += ptrPixels[s + v].x * ptrKernel[HALF_KERNEL_SIZE + v];
+          sum += ptrPixels[s - v].x * ptrKernel[HALF_KERNEL_SIZE - v];
         }
 
-        ptrResult[s].x = (int) sumX;
-        ptrResult[s].y = (int) sumY;
-        ptrResult[s].z = (int) sumZ;
+        sum += ptrPixels[s].x * ptrKernel[HALF_KERNEL_SIZE];
+
+        ptrResult[s].x = (int) sum;
+        ptrResult[s].y = (int) sum;
+        ptrResult[s].z = (int) sum;
+      } else {
+        ptrResult[s].x = 0;
+        ptrResult[s].y = 0;
+        ptrResult[s].z = 0;
       }
 
-      ptrPixels[s].w = 255;
+      ptrResult[s].w = 255;
       s += NB_THREADS;
     }
   }
 
   #pragma omp prallel for
-  for (int i = 0 ; i < SIZE_IMAGE ; i++) {
+  for (int i = 0 ; i < IMAGE_SIZE ; i++) {
     ptrPixels[i].x = ptrResult[i].x;
     ptrPixels[i].y = ptrResult[i].y;
     ptrPixels[i].z = ptrResult[i].z;
