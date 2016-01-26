@@ -130,9 +130,6 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
     // Retrieve the min and max values
     HANDLE_ERROR(cudaMemcpy(&minimums[deviceID], this->ptrDevMins[deviceID], sizeof(int), cudaMemcpyDeviceToHost));
     HANDLE_ERROR(cudaMemcpy(&maximums[deviceID], this->ptrDevMaxs[deviceID], sizeof(int), cudaMemcpyDeviceToHost));
-
-    // Copy the pixels to the displayable device
-    HANDLE_ERROR(cudaMemcpy(&ptrDevPixels[deviceID * (h / this->nbDevices) * w], this->ptrDevImagesOutputs[deviceID], sizeof(uchar4) * dividedImageHeight * w, cudaMemcpyDeviceToDevice));
   }
 
   // inter-GPU min-max reduction
@@ -143,9 +140,27 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
     if (maximums[deviceID] > max) { max = maximums[deviceID]; }
   }
 
-  // Apply an affine transform on the pixels
-  HANDLE_ERROR(cudaSetDevice(0));
-  transform<<<dg,db>>>(ptrDevPixels, imageSize, max, min);
+  #pragma omp parallel for
+  for (int deviceID = 0 ; deviceID < this->nbDevices ; deviceID++) {
+    HANDLE_ERROR(cudaSetDevice(deviceID));
+
+    // Compute the height of the image part to process
+    int dividedImageHeight = h / this->nbDevices;
+    if (deviceID == this->nbDevices - 1) {
+      dividedImageHeight += h % this->nbDevices;
+    }
+
+    // Compute heightSupplement and the size of the image array
+    // Theses both depend on the kernel size and on the deviceID
+    int heightSupplement = (KERNEL_WIDTH * ((deviceID == 0 || deviceID == this->nbDevices - 1)? 1 : 2));
+    int size = (dividedImageHeight + heightSupplement)* w;
+
+    // Apply an affine transform on the pixels
+    transform<<<dg,db>>>(this->ptrDevImagesOutputs[deviceID], size, max, min);
+
+    // Copy the pixels to the displayable device
+    HANDLE_ERROR(cudaMemcpy(&ptrDevPixels[deviceID * (h / this->nbDevices) * w], &(this->ptrDevImagesOutputs[deviceID][(deviceID == 0 ? 0 : KERNEL_WIDTH) * w]), sizeof(uchar4) * dividedImageHeight * w, cudaMemcpyDeviceToDevice));
+  }
 }
 
 /**
