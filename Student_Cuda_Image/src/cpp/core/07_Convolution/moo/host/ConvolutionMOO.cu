@@ -34,7 +34,6 @@ ConvolutionMOO::ConvolutionMOO(string videoPath, float* ptrKernel) {
   #pragma omp parallel for
   for(int deviceID = 0 ; deviceID < this->nbDevices ; deviceID++ )
   {
-
     HANDLE_ERROR(cudaSetDevice(deviceID));
     Device::assertDim(dg, db);
 
@@ -47,7 +46,6 @@ ConvolutionMOO::ConvolutionMOO(string videoPath, float* ptrKernel) {
     // Compute heightSupplement, index of the first pixel and the size of the image array
     // Theses all depend on the kernel size and on the deviceID
     int heightSupplement = (KERNEL_WIDTH * ((deviceID == 0 || deviceID == this->nbDevices - 1)? 1 : 2));
-    int index = (deviceID * (imageHeight / this->nbDevices) * imageWidth) - (deviceID == 0 ? 0 : imageWidth * KERNEL_WIDTH);
     int size = (dividedImageHeight + heightSupplement)* imageWidth;
 
     // Copy the kernel in constant memory
@@ -87,7 +85,6 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   Mat matBGR = this->videoCapter->provideBGR();
   OpencvTools::switchRB(matRGBA, matBGR);
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
-  int imageSize = w * h;
 
   int minimums[this->nbDevices];
   int maximums[this->nbDevices];

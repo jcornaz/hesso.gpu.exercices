@@ -57,6 +57,9 @@ void initCuda(Option& option) {
   // It can be usefull to preload driver, by example to practice benchmarking! (sometimes slow under linux)
   Device::loadCudaDriver(deviceId);
   // Device::loadCudaDriverAll();// Force driver to be load for all GPU
+
+  // Enable p2p
+  Device::p2pEnableALL();
 }
 
 int start(Option& option) {
