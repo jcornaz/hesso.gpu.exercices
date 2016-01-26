@@ -30,7 +30,7 @@ __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imag
   int s = TID;
   int i, j;
   float sum;
-  while (s < IMAGE_SIZE) {
+  if (s < IMAGE_SIZE) {
     IndiceTools::toIJ(s, imageWidth, &i, &j);
 
     if (i - HALF_KERNEL_WIDTH >= 0 && i + HALF_KERNEL_WIDTH < imageHeight && j - HALF_KERNEL_WIDTH >= 0 && j + HALF_KERNEL_WIDTH < imageWidth) {
@@ -71,8 +71,7 @@ __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size) {
   const int TID = Indice1D::tid();
 
   int s = TID;
-  while (s < size) {
-
+  if (s < size) {
     char grayLevel = (ptrDevPixels[s].x + ptrDevPixels[s].y + ptrDevPixels[s].z) / 3;
 
     ptrDevPixels[s].x = grayLevel;
@@ -81,16 +80,6 @@ __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size) {
 
     s += NB_THREADS;
   }
-}
-
-__global__ void computeMinMax(uchar4* ptrDevPixels, int imageSize, int* ptrDevMin, int* ptrDevMax) {
-  __shared__ int ptrDevMinimumsSM[NB_THREADS_BY_BLOCK];
-  __shared__ int ptrDevMaximumsSM[NB_THREADS_BY_BLOCK];
-
-  intraThreadMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, ptrDevPixels, imageSize);
-  __syncthreads();
-  intraBlockMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, NB_THREADS_BY_BLOCK);
-  interBlockMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, ptrDevMin, ptrDevMax);
 }
 
 __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite) {
@@ -112,6 +101,16 @@ __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int*
   }
 }
 
+__global__ void computeMinMax(uchar4* ptrDevPixels, int imageSize, int* ptrDevMin, int* ptrDevMax) {
+  __shared__ int ptrDevMinimumsSM[NB_THREADS_BY_BLOCK];
+  __shared__ int ptrDevMaximumsSM[NB_THREADS_BY_BLOCK];
+
+  intraThreadMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, ptrDevPixels, imageSize);
+  __syncthreads();
+  intraBlockMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, NB_THREADS_BY_BLOCK);
+  interBlockMinMaxReduction(ptrDevMinimumsSM, ptrDevMaximumsSM, ptrDevMin, ptrDevMax);
+}
+
 __device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, uchar4* ptrDevPixels, int imageSize) {
   const int NB_THREADS = Indice1D::nbThread();
   const int TID = Indice1D::tid();
@@ -120,7 +119,8 @@ __device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsAr
   int min = 255;
   int max = 0;
   int value;
-  while(s < imageSize) {
+  
+  if (s < imageSize) {
     value = ptrDevPixels[s].x;
     if (value < min) { min = value; }
     if (value > max) { max = value; }
