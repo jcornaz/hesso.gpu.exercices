@@ -49,7 +49,8 @@ void ConvolutionMOO::process(uchar4* ptrPixels, int w, int h) {
 
   this->convertInBlackAndWhite(ptrPixels, w, h);
   this->convolution(ptrPixels, w, h, this->ptrKernel, this->kernelWidth, this->kernelHeight);
-  this->computeMinMax(ptrPixels, n, &black, &white);
+  this->computeMinMax(ptrPixels, n, &white, &black);
+  this->transform(ptrPixels, n, black, white);
 }
 
 /**
@@ -186,4 +187,25 @@ void ConvolutionMOO::computeMinMax(uchar4* ptrPixels, int imageSize, int* ptrMin
 
   *ptrMin = min;
   *ptrMax = max;
+}
+
+void ConvolutionMOO::transform(uchar4* ptrPixels, int size, int black, int white) {
+  const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+
+  #pragma omp parallel
+  {
+    const int TID = OmpTools::getTid();
+
+    int delta = abs(white - black);
+
+    int s = TID;
+    int newValue;
+    while (s < size) {
+      newValue = (ptrPixels[s].x - black) * delta + black;
+      ptrPixels[s].x = newValue;
+      ptrPixels[s].y = newValue;
+      ptrPixels[s].z = newValue;
+      s += NB_THREADS;
+    }
+  }
 }

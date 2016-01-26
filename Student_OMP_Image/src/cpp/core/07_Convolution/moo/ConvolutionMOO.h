@@ -30,7 +30,8 @@ class ConvolutionMOO: public Animable_I {
     void convolution(uchar4* ptrDevPixels, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
     void convertInBlackAndWhite(uchar4* ptrDevPixels, int imageWidth, int imageHeight);
     void computeMinMax(uchar4* ptrPixels, int imageSize, int* ptrMin, int* ptrMax);
-    
+    void transform(uchar4* ptrPixels, int size, int black, int white);
+
     // Inputs
     int t, kernelWidth, kernelHeight;
     float* ptrKernel;
