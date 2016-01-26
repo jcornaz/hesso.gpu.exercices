@@ -24,6 +24,7 @@ ConvolutionMOO::ConvolutionMOO(string videoPath, float* ptrKernel) {
   this->nbDevices = Device::getDeviceCount();
 
   this->ptrDevImages = (uchar4**) malloc(sizeof(uchar4*) * this->nbDevices);
+  this->ptrDevImagesOutputs = (uchar4**) malloc(sizeof(uchar4*) * this->nbDevices);
   this->ptrDevMins = (int**) malloc(sizeof(int*) * this->nbDevices);
   this->ptrDevMaxs = (int**) malloc(sizeof(int*) * this->nbDevices);
 
@@ -33,27 +34,31 @@ ConvolutionMOO::ConvolutionMOO(string videoPath, float* ptrKernel) {
   #pragma omp parallel for
   for(int deviceID = 0 ; deviceID < this->nbDevices ; deviceID++ )
   {
-    Device::assertDim(dg, db);
 
     HANDLE_ERROR(cudaSetDevice(deviceID));
+    Device::assertDim(dg, db);
 
-    HANDLE_ERROR(cudaMalloc(&this->ptrDevMins[deviceID], sizeof(int)));
-    HANDLE_ERROR(cudaMalloc(&this->ptrDevMaxs[deviceID], sizeof(int)));
-
+    // Compute the height of the image part to process
     int dividedImageHeight = imageHeight / this->nbDevices;
     if (deviceID == this->nbDevices - 1) {
       dividedImageHeight += imageHeight % this->nbDevices;
     }
 
-    uchar4* ptrDev;
-    HANDLE_ERROR(cudaMalloc(&ptrDev, sizeof(uchar4) * imageWidth * dividedImageHeight));
-    this->ptrDevImages[deviceID] = ptrDev;
+    // Compute heightSupplement, index of the first pixel and the size of the image array
+    // Theses all depend on the kernel size and on the deviceID
+    int heightSupplement = (KERNEL_WIDTH * ((deviceID == 0 || deviceID == this->nbDevices - 1)? 1 : 2));
+    int index = (deviceID * (imageHeight / this->nbDevices) * imageWidth) - (deviceID == 0 ? 0 : imageWidth * KERNEL_WIDTH);
+    int size = (dividedImageHeight + heightSupplement)* imageWidth;
+
+    // Copy the kernel in constant memory
+    HANDLE_ERROR(cudaMemcpy(getPtrDevKernel(), ptrKernel, sizeof(float) * KERNEL_SIZE, cudaMemcpyHostToDevice));
+
+    // Allocate global memories
+    HANDLE_ERROR(cudaMalloc(&this->ptrDevMins[deviceID], sizeof(int)));
+    HANDLE_ERROR(cudaMalloc(&this->ptrDevMaxs[deviceID], sizeof(int)));
+    HANDLE_ERROR(cudaMalloc(&this->ptrDevImages[deviceID], sizeof(uchar4) * size));
+    HANDLE_ERROR(cudaMalloc(&this->ptrDevImagesOutputs[deviceID], sizeof(uchar4) * size));
   }
-
-  HANDLE_ERROR(cudaSetDevice(0));
-
-  HANDLE_ERROR(cudaMalloc(&this->ptrDevImage, sizeof(uchar4) * imageWidth * imageHeight));
-  HANDLE_ERROR(cudaMemcpy(getPtrDevKernel(), ptrKernel, sizeof(float) * KERNEL_SIZE, cudaMemcpyHostToDevice));
 }
 
 ConvolutionMOO::~ConvolutionMOO() {
@@ -62,13 +67,14 @@ ConvolutionMOO::~ConvolutionMOO() {
   #pragma omp parallel for
   for (int deviceID = 0 ; deviceID < this->nbDevices ; deviceID++ ) {
     HANDLE_ERROR(cudaFree(this->ptrDevImages[deviceID]));
+    HANDLE_ERROR(cudaFree(this->ptrDevImagesOutputs[deviceID]));
     HANDLE_ERROR(cudaFree(this->ptrDevMins[deviceID]));
     HANDLE_ERROR(cudaFree(this->ptrDevMaxs[deviceID]));
   }
-  HANDLE_ERROR(cudaFree(this->ptrDevImage));
 
   free(this->videoCapter);
   free(this->ptrDevImages);
+  free(this->ptrDevImagesOutputs);
   free(this->ptrDevMins);
   free(this->ptrDevMaxs);
 }
@@ -83,11 +89,6 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
   int imageSize = w * h;
 
-  HANDLE_ERROR(cudaMemcpy(this->ptrDevImage, ptrImage, sizeof(uchar4) * imageSize, cudaMemcpyHostToDevice));
-
-  convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, imageSize);
-  convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h);
-
   int minimums[this->nbDevices];
   int maximums[this->nbDevices];
   int baseMin = 255;
@@ -98,20 +99,43 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   {
     HANDLE_ERROR(cudaSetDevice(deviceID));
 
+    // Compute the height of the image part to process
     int dividedImageHeight = h / this->nbDevices;
     if (deviceID == this->nbDevices - 1) {
       dividedImageHeight += h % this->nbDevices;
     }
 
-    HANDLE_ERROR(cudaMemcpy(this->ptrDevImages[deviceID], &ptrDevPixels[deviceID * (h / this->nbDevices) * w], sizeof(uchar4) * dividedImageHeight * w, cudaMemcpyHostToDevice));
+    // Compute heightSupplement, index of the first pixel and the size of the image array
+    // Theses all depend on the kernel size and on the deviceID
+    int heightSupplement = (KERNEL_WIDTH * ((deviceID == 0 || deviceID == this->nbDevices - 1)? 1 : 2));
+    int index = (deviceID * (h / this->nbDevices) * w) - (deviceID == 0 ? 0 : w * KERNEL_WIDTH);
+    int size = (dividedImageHeight + heightSupplement)* w;
+
+    // Copy the image part to process to the device
+    HANDLE_ERROR(cudaMemcpy(this->ptrDevImages[deviceID], &ptrImage[index], sizeof(uchar4) * size, cudaMemcpyHostToDevice));
+
+    // Convert in black and white
+    convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImages[deviceID], size);
+
+    // Apply the convolution algorithm
+    convolution<<<dg,db>>>(this->ptrDevImages[deviceID], this->ptrDevImagesOutputs[deviceID], w, dividedImageHeight + heightSupplement);
+
+    // Prepare the minimum and maximum
     HANDLE_ERROR(cudaMemcpy(this->ptrDevMins[deviceID], &baseMin, sizeof(int), cudaMemcpyHostToDevice));
     HANDLE_ERROR(cudaMemcpy(this->ptrDevMaxs[deviceID], &baseMax, sizeof(int), cudaMemcpyHostToDevice));
-    computeMinMax<<<dg,db>>>(this->ptrDevImages[deviceID], dividedImageHeight, this->ptrDevMins[deviceID], this->ptrDevMaxs[deviceID]);
+
+    // Copmute the min and max pixel values
+    computeMinMax<<<dg,db>>>(this->ptrDevImagesOutputs[deviceID], size, this->ptrDevMins[deviceID], this->ptrDevMaxs[deviceID]);
+
+    // Retrieve the min and max values
     HANDLE_ERROR(cudaMemcpy(&minimums[deviceID], this->ptrDevMins[deviceID], sizeof(int), cudaMemcpyDeviceToHost));
     HANDLE_ERROR(cudaMemcpy(&maximums[deviceID], this->ptrDevMaxs[deviceID], sizeof(int), cudaMemcpyDeviceToHost));
+
+    // Copy the pixels to the displayable device
+    HANDLE_ERROR(cudaMemcpy(&ptrDevPixels[deviceID * (h / this->nbDevices) * w], this->ptrDevImagesOutputs[deviceID], sizeof(uchar4) * dividedImageHeight * w, cudaMemcpyDeviceToDevice));
   }
 
-  // Réduction inter-GPU
+  // inter-GPU min-max reduction
   int min = 255;
   int max = 0;
   for(int deviceID = 0 ; deviceID < this->nbDevices ; deviceID++) {
@@ -119,6 +143,7 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
     if (maximums[deviceID] > max) { max = maximums[deviceID]; }
   }
 
+  // Apply an affine transform on the pixels
   HANDLE_ERROR(cudaSetDevice(0));
   transform<<<dg,db>>>(ptrDevPixels, imageSize, max, min);
 }
