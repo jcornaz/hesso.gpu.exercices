@@ -44,7 +44,7 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
   int imageSize = w * h;
 
-  HANDLE_ERROR(cudaMemcpy(ptrDevPixels, ptrImage, sizeof(uchar4) * imageSize, cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(this->ptrDevImage, ptrImage, sizeof(uchar4) * imageSize, cudaMemcpyHostToDevice));
 
   convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, imageSize);
   convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h);
