@@ -45,8 +45,12 @@ void ConvolutionMOO::process(uchar4* ptrPixels, int w, int h) {
     ptrPixels[i] = ptrImage[i];
   }
 
+  int black, white;
+
   this->convertInBlackAndWhite(ptrPixels, w, h);
   this->convolution(ptrPixels, w, h, this->ptrKernel, this->kernelWidth, this->kernelHeight);
+  this->computeMinMax(ptrPixels, n, &white, &black);
+  this->transform(ptrPixels, n, black, white);
 }
 
 /**
@@ -144,6 +148,63 @@ void ConvolutionMOO::convertInBlackAndWhite(uchar4* ptrPixels, int imageWidth, i
       ptrPixels[s].y = grayLevel;
       ptrPixels[s].z = grayLevel;
 
+      s += NB_THREADS;
+    }
+  }
+}
+
+void ConvolutionMOO::computeMinMax(uchar4* ptrPixels, int imageSize, int* ptrMin, int* ptrMax) {
+  const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+
+  int minimumsArray[NB_THREADS];
+  int maximumsArray[NB_THREADS];
+
+  #pragma omp parallel
+  {
+    const int TID = OmpTools::getTid();
+
+    int s = TID;
+    int min = 255;
+    int max = 0;
+    int value;
+    while(s < imageSize) {
+      value = ptrPixels[s].x;
+      if (value < min) { min = value; }
+      if (value > max) { max = value; }
+      s += NB_THREADS;
+    }
+
+    minimumsArray[TID] = min;
+    maximumsArray[TID] = max;
+  }
+
+  int min = 255;
+  int max = 0;
+  for (int i = 0 ; i < NB_THREADS ; i++) {
+    if (minimumsArray[i] < min) { min = minimumsArray[i]; }
+    if (maximumsArray[i] > max) { max = maximumsArray[i]; }
+  }
+
+  *ptrMin = min;
+  *ptrMax = max;
+}
+
+void ConvolutionMOO::transform(uchar4* ptrPixels, int size, int black, int white) {
+  const int NB_THREADS = OmpTools::setAndGetNaturalGranularity();
+
+  #pragma omp parallel
+  {
+    const int TID = OmpTools::getTid();
+
+    int delta = abs(white - black);
+
+    int s = TID;
+    int newValue;
+    while (s < size) {
+      newValue = (ptrPixels[s].x - black) * delta + black;
+      ptrPixels[s].x = newValue;
+      ptrPixels[s].y = newValue;
+      ptrPixels[s].z = newValue;
       s += NB_THREADS;
     }
   }
