@@ -5,7 +5,7 @@
 #include "ConvolutionConstants.h"
 
 extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size);
-extern __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
+extern __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
 extern __global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax);
 extern __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite);
 extern float* getPtrDevKernel();
@@ -23,12 +23,14 @@ ConvolutionMOO::ConvolutionMOO(string videoPath, float* ptrKernel, int cudaGridD
   HANDLE_ERROR(cudaMalloc(&this->ptrDevMin, sizeof(int)));
   HANDLE_ERROR(cudaMalloc(&this->ptrDevMax, sizeof(int)));
   HANDLE_ERROR(cudaMalloc(&this->ptrDevImage, sizeof(uchar4) * this->videoCapter->getW() * this->videoCapter->getH()));
-  HANDLE_ERROR(cudaMemcpy(getPtrDevKernel(), ptrKernel, sizeof(float) * KERNEL_SIZE, cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMalloc(&this->ptrDevKernel, sizeof(float) * KERNEL_SIZE));
+  HANDLE_ERROR(cudaMemcpy(this->ptrDevKernel, ptrKernel, sizeof(float) * KERNEL_SIZE, cudaMemcpyHostToDevice));
 }
 
 ConvolutionMOO::~ConvolutionMOO() {
   this->videoCapter->stop();
   free(this->videoCapter);
+  HANDLE_ERROR(cudaFree(this->ptrDevKernel));
   HANDLE_ERROR(cudaFree(this->ptrDevImage));
   HANDLE_ERROR(cudaFree(this->ptrDevMin));
   HANDLE_ERROR(cudaFree(this->ptrDevMax));
@@ -44,10 +46,10 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
   int imageSize = w * h;
 
-  HANDLE_ERROR(cudaMemcpy(ptrDevPixels, ptrImage, sizeof(uchar4) * imageSize, cudaMemcpyHostToDevice));
+  HANDLE_ERROR(cudaMemcpy(this->ptrDevImage, ptrImage, sizeof(uchar4) * imageSize, cudaMemcpyHostToDevice));
 
   convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImage, imageSize);
-  convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h);
+  convolution<<<dg,db>>>(this->ptrDevImage, ptrDevPixels, w, h, this->ptrDevKernel, KERNEL_WIDTH, KERNEL_WIDTH);
   computeMinMax<<<dg,db>>>(ptrDevPixels, imageSize, this->ptrDevMin, this->ptrDevMax);
   transform<<<dg,db>>>(ptrDevPixels, imageSize, this->ptrDevMax, this->ptrDevMin);
 }

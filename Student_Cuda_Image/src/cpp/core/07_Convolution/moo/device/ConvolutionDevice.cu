@@ -3,10 +3,8 @@
 #include "IndiceTools.h"
 #include "ConvolutionConstants.h"
 
-__constant__ float KERNEL[KERNEL_SIZE];
-
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size);
-__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
+__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight);
 __global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax);
 __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite);
 
@@ -14,47 +12,41 @@ __device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsAr
 __device__ void intraBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int arraySize);
 __device__ void interBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int* minimumResult, int* maximumResult);
 
-float* getPtrDevKernel() {
-  float* ptrDevKernel;
-  HANDLE_ERROR(cudaGetSymbolAddress((void**) &ptrDevKernel, KERNEL));
-  return ptrDevKernel;
-}
-
-__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight) {
+__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight, float* ptrDevKernel, int kernelWidth, int kernelHeight) {
   const int NB_THREADS = Indice1D::nbThread();
   const int TID = Indice1D::tid();
-  const int IMAGE_SIZE = imageWidth * imageHeight;
-  const int HALF_KERNEL_SIZE = KERNEL_SIZE / 2;
-  const int HALF_KERNEL_WIDTH = KERNEL_WIDTH / 2;
+  const int SIZE_IMAGE = imageWidth * imageHeight;
+  const int SIZE_KERNEL = kernelWidth * kernelHeight;
+
+  const int DELTA_RIGHT = kernelWidth / 2;
+  const int DELTA_LEFT = kernelWidth - DELTA_RIGHT;
+  const int DELTA_DOWN = kernelHeight / 2;
+  const int DELTA_UP = kernelHeight - DELTA_DOWN;
 
   int s = TID;
-  int i, j;
-  float sum;
-  while (s < IMAGE_SIZE) {
+  int i, j, si, sk, ik, jk;
+  float sumX, sumY, sumZ;
+  while (s < SIZE_IMAGE) {
     IndiceTools::toIJ(s, imageWidth, &i, &j);
 
-    if (i - HALF_KERNEL_WIDTH >= 0 && i + HALF_KERNEL_WIDTH < imageHeight && j - HALF_KERNEL_WIDTH >= 0 && j + HALF_KERNEL_WIDTH < imageWidth) {
-      sum = 0.0;
+    if (i - DELTA_UP >= 0 && i + DELTA_DOWN < imageHeight && j - DELTA_LEFT >= 0 && j + DELTA_RIGHT < imageWidth) {
+      sumX = 0.0;
+      sumY = 0.0;
+      sumZ = 0.0;
 
-      for (int v = 1 ; v <= HALF_KERNEL_WIDTH ; v++) {
-        for (int u = 1 ; u <= HALF_KERNEL_WIDTH ; u++) {
-          sum += ptrDevPixels[s + v * imageWidth + u].x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH + u];
-          sum += ptrDevPixels[s - v * imageWidth + u].x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH + u];
-          sum += ptrDevPixels[s + v * imageWidth - u].x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH - u];
-          sum += ptrDevPixels[s - v * imageWidth - u].x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH - u];
-        }
-
-        sum += ptrDevPixels[s - v * imageWidth].x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH];
-        sum += ptrDevPixels[s + v * imageWidth].x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH];
-        sum += ptrDevPixels[s + v].x * KERNEL[HALF_KERNEL_SIZE + v];
-        sum += ptrDevPixels[s - v].x * KERNEL[HALF_KERNEL_SIZE - v];
+      sk = 0;
+      while (sk < SIZE_KERNEL) {
+        IndiceTools::toIJ(sk, kernelWidth, &ik, &jk);
+        si = IndiceTools::toS(imageWidth, i - DELTA_UP + ik, j - DELTA_LEFT + jk);
+        sumX += ptrDevPixels[si].x * ptrDevKernel[sk];
+        sumY += ptrDevPixels[si].y * ptrDevKernel[sk];
+        sumZ += ptrDevPixels[si].z * ptrDevKernel[sk];
+        sk++;
       }
 
-      sum += ptrDevPixels[s].x * KERNEL[HALF_KERNEL_SIZE];
-
-      ptrDevResult[s].x = (int) sum;
-      ptrDevResult[s].y = (int) sum;
-      ptrDevResult[s].z = (int) sum;
+      ptrDevResult[s].x = (int) sumX;
+      ptrDevResult[s].y = (int) sumY;
+      ptrDevResult[s].z = (int) sumZ;
     } else {
       ptrDevResult[s].x = 0;
       ptrDevResult[s].y = 0;
