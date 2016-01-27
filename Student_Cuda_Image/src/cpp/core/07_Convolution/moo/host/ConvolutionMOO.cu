@@ -4,16 +4,22 @@
 #include "cudaType.h"
 #include "ConvolutionConstants.h"
 
+extern __host__ void initTexture();
+extern __host__ void bindTexture(uchar4* ptrDevPixels, int width, int heitht);
+extern __host__ void unbindTexture();
+extern __host__ float* getPtrDevKernel();
+
 extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size);
-extern __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
+extern __global__ void convolution(uchar4* ptrDevResult, int imageWidth, int imageHeight);
 extern __global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax);
 extern __global__ void transform(uchar4* ptrDevPixels, int size, int black, int white);
-extern float* getPtrDevKernel();
 
 ConvolutionMOO::ConvolutionMOO(string videoPath, float* ptrKernel) {
   this->t = 0;
   this->videoCapter = new CVCaptureVideo("/media/Data/Video/autoroute.mp4");
   this->videoCapter->start();
+
+  initTexture();
 
   // Prepare Cuda GRID
   int size = this->videoCapter->getW() * this->videoCapter->getH();
@@ -85,6 +91,7 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
   Mat matBGR = this->videoCapter->provideBGR();
   OpencvTools::switchRB(matRGBA, matBGR);
   uchar4* ptrImage = OpencvTools::castToUchar4(matRGBA);
+  int imageSize = w * h;
 
   int minimums[this->nbDevices];
   int maximums[this->nbDevices];
@@ -114,8 +121,10 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
     // Convert in black and white
     convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImages[deviceID], size);
 
-    // Apply the convolution algorithm
-    convolution<<<dg,db>>>(this->ptrDevImages[deviceID], this->ptrDevImagesOutputs[deviceID], w, dividedImageHeight + heightSupplement);
+    // Copmute the min and max pixel values
+    bindTexture(this->ptrDevImages[deviceID], w, dividedImageHeight + heightSupplement);
+    convolution<<<dg,db>>>(this->ptrDevImagesOutputs[deviceID], w, dividedImageHeight + heightSupplement);
+    unbindTexture();
 
     // Prepare the minimum and maximum
     HANDLE_ERROR(cudaMemcpy(this->ptrDevMins[deviceID], &baseMin, sizeof(int), cudaMemcpyHostToDevice));

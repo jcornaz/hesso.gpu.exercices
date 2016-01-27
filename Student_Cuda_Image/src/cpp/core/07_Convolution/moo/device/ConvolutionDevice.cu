@@ -3,24 +3,45 @@
 #include "IndiceTools.h"
 #include "ConvolutionConstants.h"
 
+texture<uchar4, 2> textureRef;
+
 __constant__ float KERNEL[KERNEL_SIZE];
 
+__host__ void initTexture();
+__host__ void bindTexture(uchar4* ptrDevPixels, int width, int heitht);
+__host__ void unbindTexture();
+__host__ float* getPtrDevKernel();
+
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size);
-__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
+__global__ void convolution(uchar4* ptrDevResult, int imageWidth, int imageHeight);
 __global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax);
-__global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite);
+__global__ void transform(uchar4* ptrDevPixels, int size, int black, int white);
 
 __device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, uchar4* ptrDevPixels, int imageSize);
 __device__ void intraBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int arraySize);
 __device__ void interBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int* minimumResult, int* maximumResult);
 
-float* getPtrDevKernel() {
+__host__ void initTexture() {
+  // textureRef.addressMode[0] = cudaAddressModeMirror;
+  // textureRef.addressMode[1] = cudaAddressModeMirror;
+}
+
+__host__ void bindTexture(uchar4* ptrDevPixels, int width, int height) {
+  cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<uchar4>();
+  cudaBindTexture2D(NULL, textureRef, ptrDevPixels, channelDesc, width, height, sizeof(uchar4) * width);
+}
+
+__host__ void unbindTexture() {
+  cudaUnbindTexture(textureRef);
+}
+
+__host__ float* getPtrDevKernel() {
   float* ptrDevKernel;
   HANDLE_ERROR(cudaGetSymbolAddress((void**) &ptrDevKernel, KERNEL));
   return ptrDevKernel;
 }
 
-__global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight) {
+__global__ void convolution(uchar4* ptrDevResult, int imageWidth, int imageHeight) {
   const int NB_THREADS = Indice1D::nbThread();
   const int TID = Indice1D::tid();
   const int IMAGE_SIZE = imageWidth * imageHeight;
@@ -32,34 +53,27 @@ __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imag
   float sum;
   if (s < IMAGE_SIZE) {
     IndiceTools::toIJ(s, imageWidth, &i, &j);
+    sum = 0.0;
 
-    if (i - HALF_KERNEL_WIDTH >= 0 && i + HALF_KERNEL_WIDTH < imageHeight && j - HALF_KERNEL_WIDTH >= 0 && j + HALF_KERNEL_WIDTH < imageWidth) {
-      sum = 0.0;
-
-      for (int v = 1 ; v <= HALF_KERNEL_WIDTH ; v++) {
-        for (int u = 1 ; u <= HALF_KERNEL_WIDTH ; u++) {
-          sum += ptrDevPixels[s + v * imageWidth + u].x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH + u];
-          sum += ptrDevPixels[s - v * imageWidth + u].x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH + u];
-          sum += ptrDevPixels[s + v * imageWidth - u].x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH - u];
-          sum += ptrDevPixels[s - v * imageWidth - u].x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH - u];
-        }
-
-        sum += ptrDevPixels[s - v * imageWidth].x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH];
-        sum += ptrDevPixels[s + v * imageWidth].x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH];
-        sum += ptrDevPixels[s + v].x * KERNEL[HALF_KERNEL_SIZE + v];
-        sum += ptrDevPixels[s - v].x * KERNEL[HALF_KERNEL_SIZE - v];
+    for (int v = 1 ; v <= HALF_KERNEL_WIDTH ; v++) {
+      for (int u = 1 ; u <= HALF_KERNEL_WIDTH ; u++) {
+        sum += tex2D(textureRef, j + u, i + v).x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH + u];
+        sum += tex2D(textureRef, j + u, i - v).x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH + u];
+        sum += tex2D(textureRef, j - u, i + v).x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH - u];
+        sum += tex2D(textureRef, j - u, i - v).x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH - u];
       }
 
-      sum += ptrDevPixels[s].x * KERNEL[HALF_KERNEL_SIZE];
-
-      ptrDevResult[s].x = (int) sum;
-      ptrDevResult[s].y = (int) sum;
-      ptrDevResult[s].z = (int) sum;
-    } else {
-      ptrDevResult[s].x = 0;
-      ptrDevResult[s].y = 0;
-      ptrDevResult[s].z = 0;
+      sum += tex2D(textureRef, j, i - v).x * KERNEL[HALF_KERNEL_SIZE - v * KERNEL_WIDTH];
+      sum += tex2D(textureRef, j, i + v).x * KERNEL[HALF_KERNEL_SIZE + v * KERNEL_WIDTH];
+      sum += tex2D(textureRef, j - v, i).x * KERNEL[HALF_KERNEL_SIZE - v];
+      sum += tex2D(textureRef, j + v, i).x * KERNEL[HALF_KERNEL_SIZE + v];
     }
+
+    sum += tex2D(textureRef, j, i).x * KERNEL[HALF_KERNEL_SIZE];
+
+    ptrDevResult[s].x = (int) sum;
+    ptrDevResult[s].y = (int) sum;
+    ptrDevResult[s].z = (int) sum;
 
     ptrDevResult[s].w = 255;
     s += NB_THREADS;
@@ -117,7 +131,7 @@ __device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsAr
   int min = 255;
   int max = 0;
   int value;
-  
+
   if (s < imageSize) {
     value = ptrDevPixels[s].x;
     if (value < min) { min = value; }
