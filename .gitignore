@@ -6,6 +6,8 @@ RELEASE/
 *.log
 *.html
 *.xls*
+*.ods
+*.pdf
 
 .*
 !.gitignore
