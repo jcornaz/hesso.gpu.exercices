@@ -7,12 +7,7 @@
 #include "Animateur.h"
 #include "AnimateurFonctionel.h"
 
-#include "RipplingProvider.h"
-#include "MandelbrotProvider.h"
-#include "JuliaProvider.h"
-#include "NewtonProvider.h"
-#include "RayTracingProvider.h"
-#include "HeatTransfertProvider.h"
+#include "ConvolutionProvider.h"
 
 using std::cout;
 using std::endl;
@@ -27,14 +22,12 @@ int mainFreeGL(Option& option) {
 
   cout << "\n[FreeGL] mode" << endl;
 
-  const int NB_ITERATION = 1000;
+  const int NB_ITERATION = 2000;
 
-  animeAndDelete(RipplingProvider::createMOO(), NB_ITERATION);
-  animeAndDelete(MandelbrotProvider::createMOO(), NB_ITERATION);
-  animeAndDelete(JuliaProvider::createMOO(), NB_ITERATION);
-  animeAndDelete(NewtonProvider::createMOO(), NB_ITERATION);
-  animeAndDelete(RayTracingProvider::createMOO(), NB_ITERATION);
-  animeAndDelete(HeatTransfertProvider::createMOO(), NB_ITERATION);
+  for( int i = 0 ; i < 5 ; i++ )
+  {
+    animeAndDelete(ConvolutionProvider::createMOO(), NB_ITERATION);
+  }
 
   cout << "\n[FreeGL] end" << endl;
 

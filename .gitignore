@@ -4,6 +4,8 @@ BUILDER*/
 RELEASE/
 
 *.log
+*.html
+*.xls*
 
 .*
 !.gitignore
