@@ -10,7 +10,7 @@ extern __host__ void unbindTexture();
 extern __host__ float* getPtrDevKernel();
 
 extern __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size);
-extern __global__ void convolution(uchar4* ptrDevPixels, uchar4* ptrDevResult, int imageWidth, int imageHeight);
+extern __global__ void convolution(uchar4* ptrDevResult, int imageWidth, int imageHeight);
 extern __global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax);
 extern __global__ void transform(uchar4* ptrDevPixels, int size, int black, int white);
 
@@ -121,16 +121,9 @@ void ConvolutionMOO::process(uchar4* ptrDevPixels, int w, int h) {
     // Convert in black and white
     convertInBlackAndWhite<<<dg,db>>>(this->ptrDevImages[deviceID], size);
 
-    // Apply the convolution algorithm
-    convolution<<<dg,db>>>(this->ptrDevImages[deviceID], this->ptrDevImagesOutputs[deviceID], w, dividedImageHeight + heightSupplement);
-
-    // Prepare the minimum and maximum
-    HANDLE_ERROR(cudaMemcpy(this->ptrDevMins[deviceID], &baseMin, sizeof(int), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(this->ptrDevMaxs[deviceID], &baseMax, sizeof(int), cudaMemcpyHostToDevice));
-
     // Copmute the min and max pixel values
     bindTexture(this->ptrDevImages[deviceID], w, dividedImageHeight + heightSupplement);
-    convolution<<<dg,db>>>(this->ptrDevImages[deviceID], this->ptrDevImagesOutputs[deviceID], w, dividedImageHeight + heightSupplement);
+    convolution<<<dg,db>>>(this->ptrDevImagesOutputs[deviceID], w, dividedImageHeight + heightSupplement);
     unbindTexture();
 
     // Prepare the minimum and maximum

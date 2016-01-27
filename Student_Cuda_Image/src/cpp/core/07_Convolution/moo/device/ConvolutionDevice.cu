@@ -15,7 +15,7 @@ __host__ float* getPtrDevKernel();
 __global__ void convertInBlackAndWhite(uchar4* ptrDevPixels, int size);
 __global__ void convolution(uchar4* ptrDevResult, int imageWidth, int imageHeight);
 __global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDevMin, int* ptrDevMax);
-__global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite);
+__global__ void transform(uchar4* ptrDevPixels, int size, int black, int white);
 
 __device__ void intraThreadMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, uchar4* ptrDevPixels, int imageSize);
 __device__ void intraBlockMinMaxReduction(int* minimumsArraySM, int* maximumsArraySM, int arraySize);
