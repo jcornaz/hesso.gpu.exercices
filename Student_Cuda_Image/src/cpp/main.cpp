@@ -23,7 +23,7 @@ static void initCuda(Option& option);
 int main(int argc, char** argv) {
   // Server Cuda1: in [0,5]
   // Server Cuda2: in [0,2]
-  int DEVICE_ID = 3;
+  int DEVICE_ID = 0;
   bool IS_GL = false;
 
   Option option(IS_GL, DEVICE_ID,argc,argv);
@@ -57,6 +57,9 @@ void initCuda(Option& option) {
   // It can be usefull to preload driver, by example to practice benchmarking! (sometimes slow under linux)
   Device::loadCudaDriver(deviceId);
   // Device::loadCudaDriverAll();// Force driver to be load for all GPU
+
+  // Enable p2p
+  Device::p2pEnableALL();
 }
 
 int start(Option& option) {
