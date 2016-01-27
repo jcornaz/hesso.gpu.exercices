@@ -104,7 +104,7 @@ __global__ void transform(uchar4* ptrDevPixels, int size, int black, int white) 
 
   int s = TID;
   int newValue;
-  while (s < size) {
+  if (s < size) {
     newValue = (ptrDevPixels[s].x - black) * delta + black;
     ptrDevPixels[s].x = newValue;
     ptrDevPixels[s].y = newValue;

@@ -4,22 +4,25 @@
 
 ### on CPU
 
-| Version     | Speed   |
-|-------------|--------:|
-| Sequential  | 0.6 fps |
-| OpenMP      | 5.8 fps |
+| Version                 | Speed     |
+|-------------------------|----------:|
+| Image acquisition only  | 94.2 fps  |
+| Sequential (naive)      | 0.6 fps   |
+| Sequential (indices)    | 3.3 fps   |
+| OpenMP (naive)          | 5.5 fps   |
+| OpenMP (indices)        | 15.3 fps  |
 
 ### on GPU
 | Version                             | Speed     |
 |-------------------------------------|----------:|
-| First (naive)                       | 87.0 fps  |
-| Amplified                           | 79.8 fps  |
-| Black&White assumed by the kernel   | 98.1 fps  |
-| Black&White computed by the kernel  | 87.8 fps  |
-| Indices calcul improved             | 138.5 fps |
-| 1D cuda grid (instead of 2D)        | 139.4 fps |
-| Cuda grid dimension tuned           | 146.2 fps |
-| Kernel in Constant memory           | 167.0 fps |
+| Image acquisition only              | 241.5 fps  |
+| First (naive)                       | 94.4 fps  |
+| Indices calcul improved             | 159.9 fps |
+| Kernel in Constant memory           | 196.0 fps |
+| MinMax with multi-GPU               | 151.2 fps |
+| All kernels with multi-GPU          | 137.1 fps |
+| One-to-One pattern                  | 141.0 fps |
+| One-to-One pattern                  | 183.8 fps |
 
 
 # Exercices
