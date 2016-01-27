@@ -7,7 +7,7 @@
 class ConvolutionMOO: public Animable_I {
 
   public:
-    ConvolutionMOO(string videoPath, float* ptrKernel, int cudaGridDim, int cudaBlockDim);
+    ConvolutionMOO(string videoPath, float* ptrKernel);
     ~ConvolutionMOO();
 
     /**

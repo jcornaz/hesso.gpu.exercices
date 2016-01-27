@@ -10,19 +10,22 @@ extern __global__ void computeMinMax(uchar4* ptrDevPixels, int size, int* ptrDev
 extern __global__ void transform(uchar4* ptrDevPixels, int size, int* ptrDevBlack, int* ptrDevWhite);
 extern float* getPtrDevKernel();
 
-ConvolutionMOO::ConvolutionMOO(string videoPath, float* ptrKernel, int cudaGridDim, int cudaBlockDim) {
-
-  this->dg = dim3(cudaGridDim, 1, 1);
-  this->db = dim3(NB_THREADS_BY_BLOCK, 1, 1);
-  Device::assertDim(dg, db);
-
+ConvolutionMOO::ConvolutionMOO(string videoPath, float* ptrKernel) {
   this->t = 0;
   this->videoCapter = new CVCaptureVideo("/media/Data/Video/autoroute.mp4");
   this->videoCapter->start();
 
+  // Prepare Cuda GRID
+  int size = this->videoCapter->getW() * this->videoCapter->getH();
+  int gridDim = (size / NB_THREADS_BY_BLOCK) + ((size % NB_THREADS_BY_BLOCK == 0) ? 0 : 1);
+  this->dg = dim3(gridDim, 1, 1);
+  this->db = dim3(NB_THREADS_BY_BLOCK, 1, 1);
+  Device::assertDim(dg, db);
+
+  // Allocate memory in GPU
   HANDLE_ERROR(cudaMalloc(&this->ptrDevMin, sizeof(int)));
   HANDLE_ERROR(cudaMalloc(&this->ptrDevMax, sizeof(int)));
-  HANDLE_ERROR(cudaMalloc(&this->ptrDevImage, sizeof(uchar4) * this->videoCapter->getW() * this->videoCapter->getH()));
+  HANDLE_ERROR(cudaMalloc(&this->ptrDevImage, sizeof(uchar4) * size));
   HANDLE_ERROR(cudaMemcpy(getPtrDevKernel(), ptrKernel, sizeof(float) * KERNEL_SIZE, cudaMemcpyHostToDevice));
 }
 
